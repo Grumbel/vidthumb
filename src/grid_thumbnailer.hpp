@@ -34,7 +34,7 @@ public:
 
   void save(const std::string& filename);  
   std::vector<gint64> get_thumbnail_pos(gint64 duration);
-  void receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img);
+  void receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos);
 };
 
 #endif

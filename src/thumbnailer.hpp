@@ -28,7 +28,7 @@ class Thumbnailer
 public:
   virtual ~Thumbnailer() {}
   virtual std::vector<gint64> get_thumbnail_pos(gint64 duration) =0;
-  virtual void receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img) =0;
+  virtual void receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos) =0;
 };
 
 #endif

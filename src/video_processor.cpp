@@ -188,7 +188,7 @@ VideoProcessor::on_buffer_probe(const Glib::RefPtr<Gst::Pad>& pad, const Glib::R
         }
       }
 
-      m_thumbnailer.receive_frame(img);
+      m_thumbnailer.receive_frame(img, get_position());
     }
 
     Glib::signal_idle().connect(sigc::mem_fun(this, &VideoProcessor::seek_step));
@@ -207,20 +207,18 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   }
   else if (msg->get_message_type() & Gst::MESSAGE_STATE_CHANGED)
   {
+    Glib::RefPtr<Gst::MessageStateChanged> state_msg = Glib::RefPtr<Gst::MessageStateChanged>::cast_dynamic(msg);
+    Gst::State oldstate;
+    Gst::State newstate;
+    Gst::State pending;
+    state_msg->parse(oldstate, newstate, pending);
+
+    std::cout << "message: " << msg->get_source()->get_name() << " " << oldstate << " " << newstate << std::endl;
+
     if (msg->get_source() == m_fakesink)
     {
-      Glib::RefPtr<Gst::MessageStateChanged> state_msg = Glib::RefPtr<Gst::MessageStateChanged>::cast_dynamic(msg);
-
-      Gst::State oldstate;
-      Gst::State newstate;
-      Gst::State pending;
-      state_msg->parse(oldstate, newstate, pending);
-
-      std::cout << "Message: " << msg->get_source()->get_name() << " " << oldstate << " " << newstate << std::endl;
-
       if (newstate == Gst::STATE_PAUSED)
       {
-        std::cout << "---------------------[ pause ]---------------------------------" << std::endl;
         if (!m_running)
         {
           std::cout << "##################################### ONLY ONCE: " << " ################" << std::endl;
