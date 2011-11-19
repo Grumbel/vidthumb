@@ -33,6 +33,6 @@ env = Environment(CXXFLAGS = [ "-O0", "-g3",
 env.ParseConfig("pkg-config --cflags --libs gstreamermm-0.10 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs cairomm-1.0 | sed 's/-I/-isystem/g'")
 
-env.Program("vidthumb", ["src/vidthumb.cpp", "src/video_processor.cpp", "src/grid_thumbnailer.cpp"])
+env.Program("vidthumb", Glob('src/*.cpp'))
 
 # EOF #

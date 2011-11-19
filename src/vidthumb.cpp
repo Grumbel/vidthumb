@@ -25,7 +25,9 @@
 #include <gstreamermm.h>
 #include <cairomm/cairomm.h>
 
+#include "param_list.hpp"
 #include "grid_thumbnailer.hpp"
+#include "fourd_thumbnailer.hpp"
 #include "thumbnailer.hpp"
 #include "video_processor.hpp"
 
@@ -35,8 +37,8 @@ int main(int argc, char** argv)
   {
     std::string input_filename;
     std::string output_filename;
-    int rows = 4;
-    int cols = 4;
+    enum { kGridThumbnailer, kFourdThumbnailer } mode = kGridThumbnailer;
+    ParamList params;
 
 #define NEXT_ARG                                                        \
     if (i >= argc-1)                                                    \
@@ -53,17 +55,19 @@ int main(int argc, char** argv)
         NEXT_ARG;
         output_filename = argv[i];
       }
-      else if (strcmp(argv[i], "-c") == 0 ||
-               strcmp(argv[i], "--cols") == 0)
+      else if (strcmp(argv[i], "-p") == 0 ||
+               strcmp(argv[i], "--params") == 0)
       {
         NEXT_ARG;
-        cols = atoi(argv[i]);
+        params.parse_string(argv[i]);
       }
-      else if (strcmp(argv[i], "-r") == 0 ||
-               strcmp(argv[i], "--rows") == 0)
+      else if (strcmp(argv[i], "--fourd") == 0)
       {
-        NEXT_ARG;
-        rows = atoi(argv[i]);
+        mode = kFourdThumbnailer;
+      }
+      else if (strcmp(argv[i], "--grid") == 0)
+      {
+        mode = kGridThumbnailer;
       }
       else
       {
@@ -90,11 +94,33 @@ int main(int argc, char** argv)
     Glib::RefPtr<Glib::MainLoop> mainloop = Glib::MainLoop::create();
     Gst::init(argc, argv);
 
-    GridThumbnailer thumbnailer(cols, rows);
-    VideoProcessor processor(mainloop, thumbnailer, input_filename);
+    std::unique_ptr<Thumbnailer> thumbnailer;
+    switch(mode)
+    {
+      case kGridThumbnailer: {
+        int cols = 4;
+        int rows = 4;
+        params.get("cols", &cols);
+        params.get("rows", &rows);
+        thumbnailer.reset(new GridThumbnailer(cols, rows));
+        break;
+      }
+
+      case kFourdThumbnailer: {
+        int slices = 100;
+        params.get("slices", &slices);
+        thumbnailer.reset(new FourdThumbnailer(slices));
+        break;
+      }
+
+      default:
+        assert(!"never reached");
+        break;
+    }
+    VideoProcessor processor(mainloop, *thumbnailer, input_filename);
     mainloop->run();
 
-    thumbnailer.save(output_filename);
+    thumbnailer->save(output_filename);
   }
   catch(const Gst::ParseError& err)
   {
