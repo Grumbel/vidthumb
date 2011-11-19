@@ -139,7 +139,7 @@ VideoProcessor::seek_step()
   else
   {
     std::cout << "---------- DONE ------------" << std::endl;
-    shutdown();
+    Glib::signal_idle().connect(sigc::mem_fun(this, &VideoProcessor::shutdown));
     m_done = true;
   }
 
@@ -202,8 +202,11 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   if (msg->get_message_type() & Gst::MESSAGE_ERROR)
   {
     Glib::RefPtr<Gst::MessageError> error_msg = Glib::RefPtr<Gst::MessageError>::cast_dynamic(msg);
-    std::cout << "Error: " << error_msg->parse().what() << std::endl;
-    assert(!"Failure");
+    std::cout << "Error: "
+              << msg->get_source()->get_name() << ": "
+              << error_msg->parse().what() << std::endl;
+    //assert(!"Failure");
+    Glib::signal_idle().connect(sigc::mem_fun(this, &VideoProcessor::shutdown));
   }
   else if (msg->get_message_type() & Gst::MESSAGE_STATE_CHANGED)
   {
@@ -234,7 +237,7 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   else if (msg->get_message_type() & Gst::MESSAGE_EOS)
   {
     std::cout << "end of stream" << std::endl;
-    shutdown();
+    Glib::signal_idle().connect(sigc::mem_fun(this, &VideoProcessor::shutdown));
   }
   else if (msg->get_message_type() & Gst::MESSAGE_TAG) 
   {
@@ -275,16 +278,17 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   else
   {
     std::cout << "unknown message: " << msg->get_message_type() << std::endl;
-    shutdown();
+    Glib::signal_idle().connect(sigc::mem_fun(this, &VideoProcessor::shutdown));
   }
 }
 
-void
+bool
 VideoProcessor::shutdown()
 {
   std::cout << "Going to shutdown!!!!!!!!!!!" << std::endl;
   m_playbin->set_state(Gst::STATE_NULL);
   m_mainloop->quit();
+  return false;
 }
 
 /* EOF */

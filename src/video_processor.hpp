@@ -56,7 +56,7 @@ public:
   bool seek_step();
   bool on_buffer_probe(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& miniobj);
   void on_bus_message(const Glib::RefPtr<Gst::Message>& msg);
-  void shutdown();
+  bool shutdown();
 };
 
 #endif
