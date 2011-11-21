@@ -117,7 +117,7 @@ int main(int argc, char** argv)
         assert(!"never reached");
         break;
     }
-    VideoProcessor processor(mainloop, *thumbnailer, input_filename);
+    VideoProcessor processor(mainloop, *thumbnailer, input_filename, 5000);
     mainloop->run();
 
     thumbnailer->save(output_filename);
