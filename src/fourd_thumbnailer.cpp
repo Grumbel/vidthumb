@@ -65,7 +65,10 @@ FourdThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 p
 void
 FourdThumbnailer::save(const std::string& filename)
 {
-  m_buffer->write_to_png(filename);
+  if (m_buffer)
+  {
+    m_buffer->write_to_png(filename);
+  }
 }
 
 /* EOF */
