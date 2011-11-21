@@ -33,7 +33,10 @@ GridThumbnailer::GridThumbnailer(int cols, int rows) :
 void
 GridThumbnailer::save(const std::string& filename)
 {
-  m_buffer->write_to_png(filename);
+  if (m_buffer)
+  {
+    m_buffer->write_to_png(filename);
+  }
 }
   
 std::vector<gint64>
@@ -69,7 +72,12 @@ GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 po
   cr->paint();
 
   cr->set_font_size(12.0);
-  cr->select_font_face ("Verdana", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL); 
+  cr->select_font_face ("Sans", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL); 
+  Cairo::FontOptions font_options;
+  font_options.set_hint_metrics (Cairo::HINT_METRICS_ON);
+  font_options.set_hint_style(Cairo::HINT_STYLE_FULL);
+  font_options.set_antialias(Cairo::ANTIALIAS_GRAY);
+  cr->set_font_options(font_options);
 
   int hour = static_cast<int>(pos / (Gst::SECOND * 60 * 60));
   int min  = static_cast<int>(pos / (Gst::SECOND * 60)) % 60;
