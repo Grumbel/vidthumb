@@ -300,6 +300,14 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   {
     std::cout << "MESSAGE_DURATION" << std::endl;
   }
+  else if (msg->get_message_type() & GST_MESSAGE_APPLICATION)
+  {
+    std::cout << "MESSAGE_APPLICATION" << std::endl;
+  }
+  else if (msg->get_message_type() & GST_MESSAGE_ELEMENT)
+  {
+    std::cout << "MESSAGE_ELEMENT" << std::endl;
+  }
   else
   {
     std::cout << "unknown message: " << msg->get_message_type() << std::endl;
