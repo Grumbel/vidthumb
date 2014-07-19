@@ -29,6 +29,25 @@
 
 #include "thumbnailer.hpp"
 
+std::string to_string(Gst::State state)
+{
+  switch(state)
+  {
+    case Gst::STATE_VOID_PENDING:
+      return "pending";
+    case Gst::STATE_NULL:
+      return "null";
+    case Gst::STATE_READY:
+      return "ready";
+    case Gst::STATE_PAUSED:
+      return "paused";
+    case Gst::STATE_PLAYING:
+      return "playing";
+    default:
+      return "unknown";
+  }
+}
+
 VideoProcessor::VideoProcessor(Glib::RefPtr<Glib::MainLoop> mainloop,
                                Thumbnailer& thumbnailer,
                                const std::string& filename,
@@ -45,13 +64,14 @@ VideoProcessor::VideoProcessor(Glib::RefPtr<Glib::MainLoop> mainloop,
   m_last_screenshot()
 {
   // Setup a second pipeline to get the actual thumbnails
-  m_playbin = Gst::Parse::launch("filesrc name=mysource ! "
-                                 "decodebin2 ! "
-                                 "ffmpegcolorspace ! "
-                                 "videoscale ! "
-                                 "video/x-raw-rgb,depth=24,bpp=32,"
-                                 "pixel-aspect-ratio=1/1 ! " // ,width=180
-                                 "fakesink name=mysink signal-handoffs=True");
+  m_playbin = Gst::Parse::launch("filesrc name=mysource "
+                                 "  ! decodebin2 name=src "
+                                 "src. "
+                                 "  ! queue "
+                                 "  ! ffmpegcolorspace "
+                                 "  ! videoscale "
+                                 "  ! video/x-raw-rgb,depth=24,bpp=32,pixel-aspect-ratio=1/1 " // ,width=180
+                                 "  ! fakesink name=mysink sync=False signal-handoffs=True");
 
   m_pipeline = Glib::RefPtr<Gst::Pipeline>::cast_dynamic(m_playbin);
 
@@ -65,7 +85,19 @@ VideoProcessor::VideoProcessor(Glib::RefPtr<Glib::MainLoop> mainloop,
   thumbnail_bus->add_signal_watch();
   thumbnail_bus->signal_message().connect(sigc::mem_fun(this, &VideoProcessor::on_bus_message));
 
+  {
+    Gst::State state;
+    Gst::State pending;
+    Gst::StateChangeReturn ret = m_playbin->get_state(state, pending, 0);
+    std::cout << "--STATE: " << ret << " " << to_string(state) << " " << to_string(pending) << std::endl;
+  }
   m_playbin->set_state(Gst::STATE_PAUSED);
+  {
+    Gst::State state;
+    Gst::State pending;
+    Gst::StateChangeReturn ret = m_playbin->get_state(state, pending, 0);
+    std::cout << "--STATE: " << ret << " " << to_string(state) << " " << to_string(pending) << std::endl;
+  }
 
   if (m_timeout != -1)
   {
@@ -84,7 +116,7 @@ VideoProcessor::send_buffer_probe()
 }
 
 gint64
-VideoProcessor::get_duration() 
+VideoProcessor::get_duration()
 {
   Gst::Format format = Gst::FORMAT_TIME;
   gint64 duration;
@@ -106,7 +138,7 @@ VideoProcessor::get_duration()
 }
 
 gint64
-VideoProcessor::get_position() 
+VideoProcessor::get_position()
 {
   Gst::Format format = Gst::FORMAT_TIME;
   gint64 position;
@@ -133,12 +165,12 @@ bool
 VideoProcessor::seek_step()
 {
   std::cout << "!!!!!!!!!!!!!!!! seek_step: " << m_thumbnailer_pos.size() << std::endl;
-    
+
   if (!m_thumbnailer_pos.empty())
   {
     std::cout << "--> REQUEST SEEK: " << m_thumbnailer_pos.back() << std::endl;
     /*
-    if (!m_pipeline->seek(1.0, 
+    if (!m_pipeline->seek(1.0,
                           Gst::FORMAT_TIME,
                           Gst::SEEK_FLAG_FLUSH | Gst::SEEK_FLAG_ACCURATE,
                           //Gst::SEEK_FLAG_FLUSH | Gst::SEEK_FLAG_KEY_UNIT,
@@ -182,11 +214,11 @@ VideoProcessor::on_buffer_probe(const Glib::RefPtr<Gst::Pad>& pad, const Glib::R
       structure.get_field("width",  width);
       structure.get_field("height", height);
     }
-    
-    std::cout << "                  " 
-              << ">>>>>>>>>>>>>>>>>>>>>>>>> on_buffer_probe: " << pad->get_name() 
+
+    std::cout << "                  "
+              << ">>>>>>>>>>>>>>>>>>>>>>>>> on_buffer_probe: " << pad->get_name()
               << " " << buffer->get_size() << " " << get_position()
-              << " " << width << "x" << height 
+              << " " << width << "x" << height
               << std::endl;
 
     {
@@ -212,7 +244,7 @@ VideoProcessor::on_buffer_probe(const Glib::RefPtr<Gst::Pad>& pad, const Glib::R
     }
 
     Glib::signal_idle().connect(sigc::mem_fun(this, &VideoProcessor::seek_step));
-  }   
+  }
   return true;
 }
 
@@ -236,7 +268,7 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
     Gst::State pending;
     state_msg->parse(oldstate, newstate, pending);
 
-    std::cout << "message: " << msg->get_source()->get_name() << " " << oldstate << " " << newstate << std::endl;
+    std::cout << "message: " << msg->get_source()->get_name() << " old:" << to_string(oldstate) << " new:" << to_string(newstate) << std::endl;
 
     if (msg->get_source() == m_fakesink)
     {
@@ -264,23 +296,66 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
     std::cout << "end of stream" << std::endl;
     Glib::signal_idle().connect(sigc::mem_fun(this, &VideoProcessor::shutdown));
   }
-  else if (msg->get_message_type() & Gst::MESSAGE_TAG) 
+  else if (msg->get_message_type() & Gst::MESSAGE_TAG)
   {
     std::cout << "MESSAGE_TAG" << std::endl;
+    Glib::RefPtr<Gst::MessageTag> tag_msg = Glib::RefPtr<Gst::MessageTag>::cast_dynamic(msg);
+    Gst::TagList tag_list = tag_msg->parse();
+    tag_list.foreach([](const Glib::ustring& tag){
+        std::cout << "  tag: " << tag << std::endl;
+      });
   }
   else if (msg->get_message_type() & Gst::MESSAGE_ASYNC_DONE)
   {
     std::cout << "MESSAGE_ASYNC_DONE" << std::endl;
   }
-  else if (msg->get_message_type() & Gst::MESSAGE_STREAM_STATUS) 
+  else if (msg->get_message_type() & Gst::MESSAGE_STREAM_STATUS)
   {
     std::cout << "MESSAGE_STREAM_STATUS" << std::endl;
+    Glib::RefPtr<Gst::MessageStreamStatus> status_msg = Glib::RefPtr<Gst::MessageStreamStatus>::cast_dynamic(msg);
+    Gst::StreamStatusType type = status_msg->parse();
+    std::cout << "StreamStatus:";
+    switch(type)
+    {
+      case Gst::STREAM_STATUS_TYPE_CREATE:
+        std::cout << "CREATE";
+        break;
+
+      case Gst::STREAM_STATUS_TYPE_ENTER:
+        std::cout << "ENTER";
+        break;
+
+      case Gst::STREAM_STATUS_TYPE_LEAVE:
+        std::cout << "LEAVE";
+        break;
+
+      case Gst::STREAM_STATUS_TYPE_DESTROY:
+        std::cout << "DESTROY";
+        break;
+
+      case Gst::STREAM_STATUS_TYPE_START:
+        std::cout << "START";
+        break;
+
+      case Gst::STREAM_STATUS_TYPE_PAUSE:
+        std::cout << "PAUSE";
+        break;
+
+      case Gst::STREAM_STATUS_TYPE_STOP:
+        std::cout << "PAUSE";
+        break;
+
+      default:
+        std::cout << "???";
+        break;
+    }
+    std::cout << std::endl;
   }
-  else if (msg->get_message_type() & Gst::MESSAGE_REQUEST_STATE) 
+  else if (msg->get_message_type() & Gst::MESSAGE_REQUEST_STATE)
   {
     std::cout << "MESSAGE_REQUEST_STATE" << std::endl;
   }
-  else if (msg->get_message_type() & Gst::MESSAGE_STEP_START) 
+  else if (msg->get_message_type() & Gst::MESSAGE_STEP_START)
   {
     std::cout << "MESSAGE_STEP_START" << std::endl;
   }
@@ -288,7 +363,7 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   {
     std::cout << "MESSAGE_REQUEST_STATE" << std::endl;
   }
-  else if (msg->get_message_type() & Gst::MESSAGE_QOS) 
+  else if (msg->get_message_type() & Gst::MESSAGE_QOS)
   {
     std::cout << "MESSAGE_QOS" << std::endl;
   }
@@ -318,6 +393,13 @@ VideoProcessor::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
 bool
 VideoProcessor::shutdown()
 {
+  {
+    Gst::State state;
+    Gst::State pending;
+    Gst::StateChangeReturn ret = m_playbin->get_state(state, pending, 0);
+    std::cout << "--STATE: " << ret << " " << to_string(state) << " " << to_string(pending) << std::endl;
+  }
+
   std::cout << "Going to shutdown!!!!!!!!!!!" << std::endl;
   m_playbin->set_state(Gst::STATE_NULL);
   m_mainloop->quit();

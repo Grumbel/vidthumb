@@ -18,6 +18,7 @@
 
 #include <iostream>
 #include <typeinfo> 
+#include <glibmm.h>
 
 #include "media_info.hpp"
 
@@ -62,7 +63,8 @@ struct ForEach
 
   void operator()(const Glib::ustring& foo)
   {
-    std::cout << "  name: " << foo << " " << m_tag_list.get_type(foo) << std::endl;
+    std::cout << "  name: " << foo << " " << m_tag_list.get_type(foo)
+              << std::endl;
   }
 };
 
@@ -98,17 +100,20 @@ MediaInfo::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   }
   else if (msg->get_message_type() & Gst::MESSAGE_TAG)
   {
-    std::cout << "TAG: " << std::endl;
-    auto tag_msg = Glib::RefPtr<Gst::MessageTag>::cast_dynamic(msg);
-    std::cout << "<<<<<<<<<<<<<<: " << tag_msg << std::endl;
-    Gst::TagList tag_list = tag_msg->parse();
-    std::cout << "  is_empty: " << tag_list.is_empty() << std::endl;
-    tag_list.foreach(ForEach(tag_list));
-    std::cout << ">>>>>>>>>>>>>>" << std::endl;
-    if (false) // does not work
+    if (true)
     {
-      Glib::RefPtr<Gst::Pad> pad = tag_msg->parse_pad();
-      std::cout << " PAD: " << pad << std::endl;
+      std::cout << "TAG: " << std::endl;
+      auto tag_msg = Glib::RefPtr<Gst::MessageTag>::cast_dynamic(msg);
+      std::cout << "<<<<<<<<<<<<<<: " << tag_msg << std::endl;
+      Gst::TagList tag_list = tag_msg->parse();
+      std::cout << "  is_empty: " << tag_list.is_empty() << std::endl;
+      tag_list.foreach(ForEach(tag_list));
+      std::cout << ">>>>>>>>>>>>>>" << std::endl;
+      if (false) // does not work
+      {
+        Glib::RefPtr<Gst::Pad> pad = tag_msg->parse_pad();
+        std::cout << " PAD: " << pad << std::endl;
+      }
     }
   }
 }
@@ -116,7 +121,8 @@ MediaInfo::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
 bool do_foreach(const Glib::ustring& str, const Glib::ValueBase& value)
 {
   //auto& v = reinterpret_cast<const Glib::Value<int>& >(value);
-  std::cout << "   -- field: " << str << " " << typeid(&value).name()  << std::endl;
+  std::cout << "   -- field: " << str << " " << typeid(&value).name() << " "
+            << std::endl;
   return true; // continue looping
 }
 
@@ -204,12 +210,29 @@ int main(int argc, char** argv)
 
   for(int i = 1; i < argc; ++i)
   {
-    MediaInfo video(argv[i]);
-    std::cout << "Duration: " << video.get_duration() << std::endl;
-    std::cout << "Frames:   " << video.get_frames() << std::endl;
-    std::cout << "Bytes:    " << video.get_bytes() << std::endl;
-    std::cout << "Buffers:  " << video.get_buffers() << std::endl;
-    std::cout << "Size:     " << video.get_width() << "x" << video.get_height() << std::endl;
+    try 
+    {
+      std::cout << "----------------------------------------------------------------------------------" << std::endl;
+      MediaInfo video(argv[i]);
+      std::cout << "Duration: " << video.get_duration() 
+                << " - "
+                << static_cast<int>(video.get_duration() / (Gst::SECOND * 60 * 60)) << ":"
+                << static_cast<int>(video.get_duration() / (Gst::SECOND * 60)) % 60 << ":"
+                << static_cast<int>(video.get_duration() / Gst::SECOND) % 60
+                << std::endl;
+      std::cout << "Frames:   " << video.get_frames() << std::endl;
+      std::cout << "Bytes:    " << video.get_bytes() << std::endl;
+      std::cout << "Buffers:  " << video.get_buffers() << std::endl;
+      std::cout << "Size:     " << video.get_width() << "x" << video.get_height() << std::endl;
+    }
+    catch(const Glib::Exception& err)
+    {
+      std::cout << "Glib::Exception: " << err.what() << std::endl;
+    }
+    catch(const std::exception& err)
+    {
+      std::cout << "Exception: " << err.what() << std::endl;
+    }
   }
   
   return 0;
