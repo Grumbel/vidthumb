@@ -18,7 +18,7 @@
 
 #include <iostream>
 #include <typeinfo> 
-#include <glibmm.h>
+#include <glib.h>
 
 #include "media_info.hpp"
 
@@ -34,24 +34,35 @@ MediaInfo::MediaInfo(const std::string& filename) :
   m_width(),
   m_height()
 {
-  m_playbin = Gst::Parse::launch("uridecodebin name=mysource ! fakesink name=mysink");
-  m_pipeline = Glib::RefPtr<Gst::Pipeline>::cast_dynamic(m_playbin);
+  m_playbin = gst_parse_launch("uridecodebin name=mysource ! fakesink name=mysink", NULL);
+  m_pipeline = GST_PIPELINE(m_playbin);
 
-  Glib::RefPtr<Gst::Element> source = m_pipeline->get_element("mysource");
-  source->set_property("uri", Glib::filename_to_uri(filename));
+  GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
+  gchar* uri = g_filename_to_uri(filename.c_str(), NULL, NULL);
+  g_object_set(source, "uri", uri, NULL);
+  g_free(uri);
 
-  m_fakesink = m_pipeline->get_element("mysink");
+  m_fakesink = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysink");
 
-  Glib::RefPtr<Gst::Bus> bus = m_playbin->get_bus();
-  bus->add_signal_watch();
-  bus->signal_message().connect(sigc::mem_fun(this, &MediaInfo::on_bus_message));
+  GstBus* bus = gst_pipeline_get_bus(m_pipeline);
+  gst_bus_add_signal_watch(bus);
+  //bus->signal_message().connect(sigc::mem_fun(this, &MediaInfo::on_bus_message));
 
-  m_pipeline->set_state(Gst::STATE_PAUSED);
+  gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PAUSED);
 
-  m_mainloop = Glib::MainLoop::create();
-  m_mainloop->run();
+  m_mainloop = g_main_loop_new(NULL, FALSE);
+  g_main_loop_run(m_mainloop);
 }
 
+MediaInfo::~MediaInfo()
+{
+  // FIXME: free some garbage
+  //gst_object_unref(bus);
+  //gst_element_set_state(pipeline, GST_STATE_NULL);
+  //gst_object_unref(m_pipeline);
+}
+
+#if 0
 struct ForEach
 {
   Gst::TagList m_tag_list;
@@ -67,7 +78,9 @@ struct ForEach
               << std::endl;
   }
 };
+#endif
 
+#if 0
 void
 MediaInfo::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
 {
@@ -125,28 +138,30 @@ bool do_foreach(const Glib::ustring& str, const Glib::ValueBase& value)
             << std::endl;
   return true; // continue looping
 }
+#endif
 
 void
 MediaInfo::get_information()
 {
-  Gst::Format time_format;
+#if 0
+  GstFormat time_format;
 
   // does not work 
-  time_format = Gst::FORMAT_DEFAULT;
+  time_format = GST_FORMAT_DEFAULT;
   m_playbin->query_duration(time_format, m_frames);
 
   // does not work
-  time_format = Gst::FORMAT_BYTES;
+  time_format = GST_FORMAT_BYTES;
   m_playbin->query_duration(time_format, m_bytes);
 
   // works
-  time_format = Gst::FORMAT_TIME;
+  time_format = GST_FORMAT_TIME;
   m_playbin->query_duration(time_format, m_duration);
 
+  GstPad* mypad = gst_element_get_static_pad(m_fakesink, "sink");
+  GstCaps* caps = gst_pad_get_current_caps(mypad);
+  GstStructure* structure = gst_caps_get_structure(caps, 0);
 
-  Glib::RefPtr<Gst::Pad> mypad = m_fakesink->get_static_pad("sink");
-  Glib::RefPtr<Gst::Caps> caps = mypad->get_negotiated_caps();
-  Gst::Structure structure = caps->get_structure(0);
   if (structure)
   {
     structure.foreach(&do_foreach);
@@ -192,21 +207,22 @@ MediaInfo::get_information()
     }
 
     std::cout << "  ## WidthxHeight: " << m_width << "x" << m_height << std::endl;
-  }  
+  }
+#endif
 }
 
 bool
 MediaInfo::shutdown()
 {
   std::cout << "Going to shutdown!!!!!!!!!!!" << std::endl;
-  m_playbin->set_state(Gst::STATE_NULL);
-  m_mainloop->quit();
+  gst_element_set_state(m_playbin, GST_STATE_NULL);
+  g_main_loop_quit(m_mainloop);
   return false;
 }
 
 int main(int argc, char** argv)
 {
-  Gst::init(argc, argv);
+  gst_init(&argc, &argv);
 
   for(int i = 1; i < argc; ++i)
   {
@@ -216,18 +232,14 @@ int main(int argc, char** argv)
       MediaInfo video(argv[i]);
       std::cout << "Duration: " << video.get_duration() 
                 << " - "
-                << static_cast<int>(video.get_duration() / (Gst::SECOND * 60 * 60)) << ":"
-                << static_cast<int>(video.get_duration() / (Gst::SECOND * 60)) % 60 << ":"
-                << static_cast<int>(video.get_duration() / Gst::SECOND) % 60
+                << static_cast<int>(video.get_duration() / (GST_SECOND * 60 * 60)) << ":"
+                << static_cast<int>(video.get_duration() / (GST_SECOND * 60)) % 60 << ":"
+                << static_cast<int>(video.get_duration() / GST_SECOND) % 60
                 << std::endl;
       std::cout << "Frames:   " << video.get_frames() << std::endl;
       std::cout << "Bytes:    " << video.get_bytes() << std::endl;
       std::cout << "Buffers:  " << video.get_buffers() << std::endl;
       std::cout << "Size:     " << video.get_width() << "x" << video.get_height() << std::endl;
-    }
-    catch(const Glib::Exception& err)
-    {
-      std::cout << "Glib::Exception: " << err.what() << std::endl;
     }
     catch(const std::exception& err)
     {

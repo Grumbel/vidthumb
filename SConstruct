@@ -30,12 +30,10 @@ env = Environment(CXXFLAGS = [ "-O0", "-g3",
                                "-Winit-self", # only works with >= -O1
                                "-Wno-unused-parameter"])
 
-env.ParseConfig("pkg-config --cflags --libs gstreamermm-0.10 | sed 's/-I/-isystem/g'")
+env.ParseConfig("pkg-config --cflags --libs gstreamer-1.0 | sed 's/-I/-isystem/g'")
+env.ParseConfig("pkg-config --cflags --libs glib-2.0 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs cairomm-1.0 | sed 's/-I/-isystem/g'")
-env.ParseConfig("pkg-config --cflags --libs glibmm-2.4 | sed 's/-I/-isystem/g'")
-env.ParseConfig("pkg-config --cflags --libs gstreamer-0.10 | sed 's/-I/-isystem/g'")
 
-# Glob('src/*.cpp'))
 env.Program("vidthumb", ["src/fourd_thumbnailer.cpp",
                          "src/grid_thumbnailer.cpp",
                          "src/param_list.cpp",

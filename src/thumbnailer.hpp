@@ -21,7 +21,7 @@
 
 #include <vector>
 #include <cairomm/cairomm.h>
-#include <glibmm/main.h>
+#include <glib.h>
 
 class Thumbnailer
 {

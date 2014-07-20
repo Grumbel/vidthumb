@@ -19,7 +19,7 @@
 #include "grid_thumbnailer.hpp"
 
 #include <boost/format.hpp>
-#include <gstreamermm.h>
+#include <gst/gst.h>
 #include <iostream>
 
 GridThumbnailer::GridThumbnailer(int cols, int rows) :
@@ -42,8 +42,6 @@ GridThumbnailer::save(const std::string& filename)
 std::vector<gint64>
 GridThumbnailer::get_thumbnail_pos(gint64 duration)
 {
-  std::cout << "Duration: " << duration << std::endl;
-    
   int n = m_rows * m_cols;
   std::vector<gint64> lst;
   for(int i = 0; i < n; ++i)
@@ -56,7 +54,6 @@ GridThumbnailer::get_thumbnail_pos(gint64 duration)
 void
 GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos) 
 {
-  std::cout << "Receive_Frame: " << std::endl;
   if (!m_buffer)
   {
     m_buffer = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24, 
@@ -79,9 +76,9 @@ GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 po
   font_options.set_antialias(Cairo::ANTIALIAS_GRAY);
   cr->set_font_options(font_options);
 
-  int hour = static_cast<int>(pos / (Gst::SECOND * 60 * 60));
-  int min  = static_cast<int>(pos / (Gst::SECOND * 60)) % 60;
-  int sec  = static_cast<int>(pos / Gst::SECOND) % 60;
+  int hour = static_cast<int>(pos / (GST_SECOND * 60 * 60));
+  int min  = static_cast<int>(pos / (GST_SECOND * 60)) % 60;
+  int sec  = static_cast<int>(pos / GST_SECOND) % 60;
   std::string time_str = (boost::format("%02d:%02d:%02d") % hour % min % sec).str();
 
   int outline = 1;
