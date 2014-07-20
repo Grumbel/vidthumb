@@ -64,7 +64,7 @@ int main(int argc, char** argv)
           "                           parameter: cols=INT,rows=INT\n"
           "  -t, --timeout SECONDS  Wait for SECONDS before giving up, -1 for infinity\n"
           "  -a, --accurate         Use accurate, but slow seeking\n";
-          exit(0);
+        exit(0);
       }
       else if (strcmp(argv[i], "-o") == 0 ||
                strcmp(argv[i], "--output") == 0)
@@ -146,11 +146,13 @@ int main(int argc, char** argv)
         break;
     }
 
-    VideoProcessor processor(mainloop, *thumbnailer);
-    processor.set_timeout(timeout);
-    processor.set_accurate(accurate);
-    processor.open(input_filename);
-    g_main_loop_run(mainloop);
+    {
+      VideoProcessor processor(mainloop, *thumbnailer);
+      processor.set_timeout(timeout);
+      processor.set_accurate(accurate);
+      processor.open(input_filename);
+      g_main_loop_run(mainloop);
+    }
 
     g_main_loop_unref(mainloop);
     gst_deinit();
