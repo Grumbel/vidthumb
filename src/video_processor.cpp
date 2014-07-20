@@ -55,6 +55,7 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   m_thumbnailer_pos(),
   m_done(false),
   m_running(false),
+  m_timeout_id(0),
   m_timeout(-1),
   m_accurate(false),
   m_last_screenshot()
@@ -99,6 +100,12 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
 
 VideoProcessor::~VideoProcessor()
 {
+  if (m_timeout_id)
+  {
+    g_source_remove(m_timeout_id);
+    m_timeout_id = 0;
+  }
+
   g_object_unref(m_fakesink);
   g_object_unref(m_pipeline);
 }
@@ -112,6 +119,12 @@ VideoProcessor::set_accurate(bool accurate)
 void
 VideoProcessor::set_timeout(int timeout)
 {
+  if (m_timeout_id)
+  {
+    g_source_remove(m_timeout_id);
+    m_timeout_id = 0;
+  }
+
   m_timeout = timeout;
 
   if (m_timeout != -1)

@@ -43,6 +43,7 @@ private:
 
   bool m_done;
   bool m_running;
+  guint m_timeout_id;
   int  m_timeout;
   bool m_accurate;
   GTimeVal m_last_screenshot;
