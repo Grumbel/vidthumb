@@ -24,30 +24,31 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
-#include <glibmm/main.h>
-#include <gstreamermm.h>
+
+#include <glib.h>
+#include <gst/gst.h>
 
 class Thumbnailer;
 
 class VideoProcessor
 {
 private:
-  Glib::RefPtr<Glib::MainLoop> m_mainloop;
+  GMainLoop* m_mainloop;
   Thumbnailer& m_thumbnailer;
 
-  Glib::RefPtr<Gst::Pipeline> m_pipeline;
-  Glib::RefPtr<Gst::Element> m_playbin;
-  Glib::RefPtr<Gst::Element> m_fakesink;
+  GstPipeline* m_pipeline;
+  GstElement* m_playbin;
+  GstElement* m_fakesink;
 
   std::vector<gint64> m_thumbnailer_pos;
 
   bool m_done;
   bool m_running;
   int  m_timeout;
-  Glib::TimeVal m_last_screenshot;
+  GTimeVal m_last_screenshot;
 
 public:
-  VideoProcessor(Glib::RefPtr<Glib::MainLoop> mainloop,
+  VideoProcessor(GMainLoop* mainloop,
                  Thumbnailer& thumbnailer,
                  const std::string& filename,
                  int timeout = -1);
@@ -56,10 +57,14 @@ public:
   gint64 get_duration();
   gint64 get_position();
   bool seek_step();
-  bool on_buffer_probe(const Glib::RefPtr<Gst::Pad>& pad, const Glib::RefPtr<Gst::MiniObject>& miniobj);
-  void on_bus_message(const Glib::RefPtr<Gst::Message>& msg);
+  //bool on_buffer_probe(GstPad* pad, GstMiniObject* miniobj);
+  //void on_bus_message(GstMessage* msg);
   bool shutdown();
   bool on_timeout();
+
+private:
+  VideoProcessor(const VideoProcessor&) = delete;
+  VideoProcessor& operator=(const VideoProcessor&) = delete;
 };
 
 #endif

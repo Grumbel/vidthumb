@@ -16,18 +16,17 @@
 **  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include <assert.h>
 #include <algorithm>
-#include <vector>
-#include <iostream>
-#include <stdexcept>
-#include <glibmm/main.h>
-#include <gstreamermm.h>
+#include <assert.h>
 #include <cairomm/cairomm.h>
+#include <iostream>
+#include <memory>
+#include <stdexcept>
+#include <vector>
 
-#include "param_list.hpp"
-#include "grid_thumbnailer.hpp"
 #include "fourd_thumbnailer.hpp"
+#include "grid_thumbnailer.hpp"
+#include "param_list.hpp"
 #include "thumbnailer.hpp"
 #include "video_processor.hpp"
 
@@ -91,8 +90,8 @@ int main(int argc, char** argv)
     std::cout << "input:  " << input_filename << std::endl;
     std::cout << "output: " << output_filename << std::endl;
 
-    Glib::RefPtr<Glib::MainLoop> mainloop = Glib::MainLoop::create();
-    Gst::init(argc, argv);
+    GMainLoop* mainloop = g_main_loop_new(NULL, false);
+    gst_init(&argc, &argv);
 
     std::unique_ptr<Thumbnailer> thumbnailer;
     switch(mode)
@@ -118,13 +117,10 @@ int main(int argc, char** argv)
         break;
     }
     VideoProcessor processor(mainloop, *thumbnailer, input_filename, 5000);
-    mainloop->run();
+    g_main_loop_run(mainloop);
+    g_main_loop_unref(mainloop);
 
     thumbnailer->save(output_filename);
-  }
-  catch(const Gst::ParseError& err)
-  {
-    std::cout << "Error: " << err.what() << std::endl;
   }
   catch(const std::exception& err)
   {

@@ -18,8 +18,6 @@
 
 #include "fourd_thumbnailer.hpp"
 
-#include <gstreamermm.h>
-
 FourdThumbnailer::FourdThumbnailer(int slices) :
   m_buffer(),
   m_slices(slices),
