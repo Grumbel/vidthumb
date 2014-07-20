@@ -61,14 +61,13 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   m_timeout(timeout),
   m_last_screenshot()
 {
-  // Setup a second pipeline to get the actual thumbnails
   GError* error = NULL;
   m_playbin = gst_parse_launch("filesrc name=mysource "
                                "  ! decodebin "
                                "  ! videoconvert "
                                //"  ! videoscale "
-                               "  ! video/x-raw,format=RGB " //depth=24,bpp=32,pixel-aspect-ratio=1/1 " // ,width=180
-                               "  ! fakesink name=mysink sync=False signal-handoffs=True", 
+                               "  ! video/x-raw,format=BGRx " //depth=24,bpp=32,pixel-aspect-ratio=1/1 " // ,width=180
+                               "  ! fakesink name=mysink signal-handoffs=True", //sync=False
                                &error);
   if (error)
   {
@@ -78,15 +77,28 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   m_pipeline = GST_PIPELINE(m_playbin);
 
   GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
-  std::cout << "SOURC: " << source << std::endl;
+  std::cout << "SOURCE: " << source << std::endl;
   g_object_set(source, "location", filename.c_str(), NULL);
 
   m_fakesink = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysink");
 
-
   GstBus* thumbnail_bus = gst_pipeline_get_bus(m_pipeline);
 
-  gst_bus_add_signal_watch(thumbnail_bus);
+#if 0
+  // NOTE: this seems to be the recommend way to get thumbnails
+  auto callback2 =
+    [](/*GstElement* fakesink,
+       GstBuffer* buffer,
+       GstPad* pad,
+       gpointer user_data*/)
+    {
+      std::cout << "stuff" << std::endl;
+    };
+  g_signal_connect(m_fakesink, "preroll-handoff",
+                   G_CALLBACK(callback2), this);
+#endif
+
+  //gst_bus_add_signal_watch(thumbnail_bus);
   gst_bus_add_watch(thumbnail_bus,
                     [](GstBus* bus, GstMessage* message, gpointer user_data) -> gboolean
                     {
@@ -114,7 +126,7 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   {
     g_get_current_time(&m_last_screenshot);
     std::cout << "------------------------------------ install time out " << std::endl;
-    auto callback = [](gpointer user_data) -> gboolean 
+    auto callback = [](gpointer user_data) -> gboolean
       {
         return static_cast<VideoProcessor*>(user_data)->on_timeout();
       };
@@ -124,7 +136,7 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
 
 VideoProcessor::~VideoProcessor()
 {
-  // FIXME: add some cleanup
+  // FIXME: add some cleanup, since we are memleaking a lot
 }
 
 void
@@ -135,10 +147,11 @@ VideoProcessor::send_buffer_probe()
 
   auto callback = [](GstPad* arg_pad, GstPadProbeInfo* arg_info, gpointer user_data) -> GstPadProbeReturn
     {
+      std::cout << "XXXXXXXXXXXXXXXXXX buffer_probe" << std::endl;
       static_cast<VideoProcessor*>(user_data)->on_buffer_probe(arg_pad, arg_info);
       return GST_PAD_PROBE_OK;
     };
-  gst_pad_add_probe(pad, 
+  gst_pad_add_probe(pad,
                     GST_PAD_PROBE_TYPE_BUFFER,
                     callback,
                     this,
@@ -222,7 +235,7 @@ VideoProcessor::seek_step()
       GST_SEEK_TYPE_SET, m_thumbnailer_pos.back(),
       GST_SEEK_TYPE_NONE, 0))
     */
-    if (!gst_element_seek_simple(GST_ELEMENT(m_pipeline), 
+    if (!gst_element_seek_simple(GST_ELEMENT(m_pipeline),
                                  GST_FORMAT_TIME,
                                  static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE),
                                  m_thumbnailer_pos.back()))
@@ -277,26 +290,22 @@ VideoProcessor::on_buffer_probe(GstPad* pad, GstPadProbeInfo* info)
       Cairo::RefPtr<Cairo::ImageSurface> img = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24, width, height);
 
       { // blit and flip color channels
-#if 0
         unsigned char* op = img->get_data();
-        unsigned char* ip  = buffer->get_data();
+        //unsigned char* ip  = buffer->get_data();
+
         int ostride = img->get_stride();
-        int istride = buffer->get_size() / height;
+        int istride = static_cast<int>(gst_buffer_get_size(buffer) / height);
         for(int y = 0; y < height; ++y)
         {
-          for(int x = 0; x < width; ++x)
-          {
-            op[y*ostride + 4*x+0] = ip[y*istride + 4*x+2];
-            op[y*ostride + 4*x+1] = ip[y*istride + 4*x+1];
-            op[y*ostride + 4*x+2] = ip[y*istride + 4*x+0];
-          }
+          gst_buffer_extract(buffer, y * istride,
+                             op + y * ostride,
+                             istride);
         }
-#endif
       }
 
       m_thumbnailer.receive_frame(img, get_position());
     }
-    
+
     auto callback = [](gpointer user_data) -> gboolean
       {
         return static_cast<VideoProcessor*>(user_data)->seek_step();
@@ -309,6 +318,7 @@ VideoProcessor::on_buffer_probe(GstPad* pad, GstPadProbeInfo* info)
 void
 VideoProcessor::on_bus_message(GstMessage* msg)
 {
+  std::cout << "VideoProcessor::on_bus_message" << std::endl;
   if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_ERROR)
   {
     std::cout << "Error: ";
@@ -361,7 +371,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
     g_idle_add([](gpointer user_data) -> gboolean
                {
                  return static_cast<VideoProcessor*>(user_data)->shutdown();
-               }, 
+               },
                this);
   }
   else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_TAG)
@@ -370,7 +380,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
     GstTagList* tag_list;
     gst_message_parse_tag(msg, &tag_list);
 
-    gst_tag_list_foreach(tag_list, 
+    gst_tag_list_foreach(tag_list,
                          [](const GstTagList* list,
                             const gchar* tag,
                             gpointer user_data)
@@ -460,13 +470,29 @@ VideoProcessor::on_bus_message(GstMessage* msg)
   {
     std::cout << "MESSAGE_ELEMENT" << std::endl;
   }
+  else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_RESET_TIME)
+  {
+    std::cout << "MESSAGE_RESET_TIME" << std::endl;
+  }
+  else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_STREAM_START)
+  {
+    std::cout << "MESSAGE_STREAM_START" << std::endl;
+  }
+  else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_NEED_CONTEXT)
+  {
+    std::cout << "MESSAGE_NEED_CONTEXT" << std::endl;
+  }
+  else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_HAVE_CONTEXT)
+  {
+    std::cout << "MESSAGE_HAVE_CONTEXT" << std::endl;
+  }
   else
   {
     std::cout << "unknown message: " << GST_MESSAGE_TYPE(msg) << std::endl;
     g_idle_add([](gpointer user_data) -> gboolean
                {
                  return static_cast<VideoProcessor*>(user_data)->shutdown();
-               }, 
+               },
                this);
   }
 }
