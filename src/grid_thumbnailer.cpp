@@ -42,8 +42,6 @@ GridThumbnailer::save(const std::string& filename)
 std::vector<gint64>
 GridThumbnailer::get_thumbnail_pos(gint64 duration)
 {
-  std::cout << "Duration: " << duration << std::endl;
-    
   int n = m_rows * m_cols;
   std::vector<gint64> lst;
   for(int i = 0; i < n; ++i)
@@ -56,7 +54,6 @@ GridThumbnailer::get_thumbnail_pos(gint64 duration)
 void
 GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos) 
 {
-  std::cout << "Receive_Frame: " << std::endl;
   if (!m_buffer)
   {
     m_buffer = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24, 

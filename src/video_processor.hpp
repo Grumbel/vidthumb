@@ -54,14 +54,19 @@ public:
                  int timeout = -1);
   ~VideoProcessor();
 
-  void send_buffer_probe();
   gint64 get_duration();
   gint64 get_position();
-  bool seek_step();
-  bool on_buffer_probe(GstPad* pad, GstPadProbeInfo *info);
+
+  void seek_step();
   void on_bus_message(GstMessage* msg);
-  bool shutdown();
+  void on_preroll_handoff(GstElement *fakesink, GstBuffer *buffer, GstPad *pad);
+  void shutdown();
+  void queue_shutdown();
+  
   bool on_timeout();
+
+private:
+  
 
 private:
   VideoProcessor(const VideoProcessor&) = delete;
