@@ -312,8 +312,8 @@ VideoProcessor::on_bus_message(GstMessage* msg)
 
     queue_shutdown();
 
-    g_error_free(err);
-    g_free(dbg_info);
+    g_error_free(gerror);
+    g_free(debug);
   }
   else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_STATE_CHANGED)
   {
@@ -355,7 +355,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
                            },
                            this);
 
-      gst_tag_list_unref(tags_list);
+      gst_tag_list_unref(tag_list);
     }
   }
   else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_ASYNC_DONE)

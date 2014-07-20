@@ -161,7 +161,7 @@ int main(int argc, char** argv)
   }
   catch(const std::exception& err)
   {
-    std::cout << "Error: " << err.what() << std::endl;
+    std::cout << "Exception: " << err.what() << std::endl;
   }
 
   return 0;
