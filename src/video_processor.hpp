@@ -30,7 +30,7 @@
 
 class Thumbnailer;
 
-class VideoProcessor
+class VideoProcessor final
 {
 private:
   GMainLoop* m_mainloop;
@@ -52,13 +52,14 @@ public:
                  Thumbnailer& thumbnailer,
                  const std::string& filename,
                  int timeout = -1);
+  ~VideoProcessor();
 
   void send_buffer_probe();
   gint64 get_duration();
   gint64 get_position();
   bool seek_step();
-  //bool on_buffer_probe(GstPad* pad, GstMiniObject* miniobj);
-  //void on_bus_message(GstMessage* msg);
+  bool on_buffer_probe(GstPad* pad, GstPadProbeInfo *info);
+  void on_bus_message(GstMessage* msg);
   bool shutdown();
   bool on_timeout();
 
