@@ -1,6 +1,6 @@
 /*
 **  VidThumb - Video Thumbnailer
-**  Copyright (C) 2011 Ingo Ruhnke <grumbel@gmx.de>
+**  Copyright (C) 2011,2014 Ingo Ruhnke <grumbel@gmx.de>
 **
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
@@ -47,45 +47,36 @@ std::string to_string(GstState state)
 }
 
 VideoProcessor::VideoProcessor(GMainLoop* mainloop,
-                               Thumbnailer& thumbnailer,
-                               const std::string& filename,
-                               int timeout) :
+                               Thumbnailer& thumbnailer) :
   m_mainloop(mainloop),
   m_thumbnailer(thumbnailer),
   m_pipeline(),
-  m_playbin(),
   m_fakesink(),
   m_thumbnailer_pos(),
   m_done(false),
   m_running(false),
-  m_timeout(timeout),
+  m_timeout(-1),
+  m_accurate(false),
   m_last_screenshot()
 {
   GError* error = NULL;
-  m_playbin = gst_parse_launch("filesrc name=mysource "
-                               "  ! decodebin "
-                               "  ! videoconvert "
-                               //"  ! videoscale "
-                               "  ! video/x-raw,format=BGRx " //depth=24,bpp=32,pixel-aspect-ratio=1/1 " // ,width=180
-                               "  ! fakesink name=mysink signal-handoffs=True", //sync=False
-                               &error);
+  m_pipeline = GST_PIPELINE(gst_parse_launch("filesrc name=mysource "
+                                             "  ! decodebin "
+                                             "  ! videoconvert "
+                                             //"  ! videoscale "
+                                             "  ! video/x-raw,format=BGRx " //depth=24,bpp=32,pixel-aspect-ratio=1/1 " // ,width=180
+                                             "  ! fakesink name=mysink signal-handoffs=True", //sync=False
+                                             &error));
   if (error)
   {
     throw std::runtime_error(error->message);
   }
 
-  m_pipeline = GST_PIPELINE(m_playbin);
-  gst_pipeline_set_auto_flush_bus(m_pipeline, false);
-
-  GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
-  std::cout << "SOURCE: " << source << std::endl;
-  g_object_set(source, "location", filename.c_str(), NULL);
-
   m_fakesink = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysink");
 
   GstBus* thumbnail_bus = gst_pipeline_get_bus(m_pipeline);
 
-  // NOTE: this seems to be the recommend way to get thumbnails
+  // intercept the frame data and makes thumbnails
   void (*callback3)(GstElement *fakesink, GstBuffer *buffer, GstPad *pad, gpointer user_data)
     = [](GstElement *fakesink, GstBuffer *buffer, GstPad *pad, gpointer user_data)
     {
@@ -94,6 +85,7 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   g_signal_connect(m_fakesink, "preroll-handoff",
                    G_CALLBACK(callback3), this);
 
+  // listen to bus messages
   gst_bus_add_watch(thumbnail_bus,
                     [](GstBus* bus, GstMessage* message, gpointer user_data) -> gboolean
                     {
@@ -102,7 +94,25 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
                     },
                     this);
 
-  gst_element_set_state(GST_ELEMENT(m_playbin), GST_STATE_PAUSED);
+  g_object_unref(thumbnail_bus);
+}
+
+VideoProcessor::~VideoProcessor()
+{
+  g_object_unref(m_fakesink);
+  g_object_unref(m_pipeline);
+}
+
+void
+VideoProcessor::set_accurate(bool accurate)
+{
+  m_accurate = accurate;
+}
+
+void
+VideoProcessor::set_timeout(int timeout)
+{
+  m_timeout = timeout;
 
   if (m_timeout != -1)
   {
@@ -116,9 +126,15 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   }
 }
 
-VideoProcessor::~VideoProcessor()
+void
+VideoProcessor::open(const std::string& filename)
 {
-  // FIXME: add some cleanup, since we are memleaking a lot
+  GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
+  g_object_set(source, "location", filename.c_str(), NULL);
+  g_object_unref(source);
+
+  // bring stream into pause state so that the thumbnailing can begin
+  gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PAUSED);  
 }
 
 gint64
@@ -128,7 +144,7 @@ VideoProcessor::get_duration()
   // http://docs.gstreamer.com/display/GstSDK/Basic+tutorial+9%3A+Media+information+gathering
 
   GstQuery* query = gst_query_new_duration(GST_FORMAT_TIME);
-  gboolean ret = gst_element_query(m_playbin, query);
+  gboolean ret = gst_element_query(GST_ELEMENT(m_pipeline), query);
   if (ret)
   {
     GstFormat format;
@@ -157,7 +173,7 @@ gint64
 VideoProcessor::get_position()
 {
   GstQuery* query = gst_query_new_position(GST_FORMAT_TIME);
-  gboolean ret = gst_element_query(m_playbin, query);
+  gboolean ret = gst_element_query(GST_ELEMENT(m_pipeline), query);
   if (ret)
   {
     GstFormat format;
@@ -190,13 +206,13 @@ VideoProcessor::seek_step()
   if (!m_thumbnailer_pos.empty())
   {
     GstSeekFlags seek_flags;
-    if (true)
+    if (m_accurate)
     {
-      seek_flags = static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_SNAP_NEAREST);  // fast
+      seek_flags = static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);  // slow
     }
     else
     {
-      seek_flags = static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_ACCURATE);  // slow
+      seek_flags = static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_SNAP_NEAREST);  // fast
     }
 
     std::cout << "--> REQUEST SEEK: " << m_thumbnailer_pos.back() << std::endl;
@@ -225,9 +241,8 @@ Cairo::RefPtr<Cairo::ImageSurface> buffer2cairo(GstBuffer* buffer, GstPad* pad)
   GstCaps* caps = gst_pad_get_current_caps(pad);
   GstStructure* structure = gst_caps_get_structure(caps, 0);
 
-  int width;
+  int width, height;
   gst_structure_get_int(structure, "width",  &width);
-  int height;
   gst_structure_get_int(structure, "height", &height);
 
   Cairo::RefPtr<Cairo::ImageSurface> img = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24, width, height);
@@ -243,6 +258,8 @@ Cairo::RefPtr<Cairo::ImageSurface> buffer2cairo(GstBuffer* buffer, GstPad* pad)
                        width * 4);
   }
 
+  gst_caps_unref(caps);
+
   return img;
 }
 
@@ -251,7 +268,7 @@ VideoProcessor::on_preroll_handoff(GstElement* fakesink, GstBuffer* buffer, GstP
 {
   if (m_running)
   {
-    std::cerr << "-------- preroll-handoff: " << buffer << " " << pad << std::endl;
+    std::cout << "-------- preroll-handoff: " << buffer << " " << pad << std::endl;
     g_get_current_time(&m_last_screenshot);
     auto img = buffer2cairo(buffer, pad);
     m_thumbnailer.receive_frame(img, get_position());
@@ -284,9 +301,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
   }
   else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_STATE_CHANGED)
   {
-    GstState oldstate;
-    GstState newstate;
-    GstState pending;
+    GstState oldstate, newstate, pending;
     gst_message_parse_state_changed(msg, &oldstate, &newstate, &pending);
 
     std::cout << "GST_MESSAGE_STATE_CHANGED: " << GST_MESSAGE_SRC_NAME(msg) << " old:" << to_string(oldstate) << " new:" << to_string(newstate) << std::endl;
@@ -442,15 +457,8 @@ VideoProcessor::queue_shutdown()
 void
 VideoProcessor::shutdown()
 {
-  {
-    GstState state;
-    GstState pending;
-    GstStateChangeReturn ret = gst_element_get_state(GST_ELEMENT(m_playbin), &state, &pending, 0);
-    std::cout << "--STATE: " << ret << " " << to_string(state) << " " << to_string(pending) << std::endl;
-  }
-
   std::cout << "Going to shutdown!!!!!!!!!!!" << std::endl;
-  gst_element_set_state(GST_ELEMENT(m_playbin), GST_STATE_NULL);
+  gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_NULL);
   g_main_loop_quit(m_mainloop);
 }
 

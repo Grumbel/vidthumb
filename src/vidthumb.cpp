@@ -1,6 +1,6 @@
 /*
 **  VidThumb - Video Thumbnailer
-**  Copyright (C) 2011 Ingo Ruhnke <grumbel@gmx.de>
+**  Copyright (C) 2011,2014 Ingo Ruhnke <grumbel@gmx.de>
 **
 **  This program is free software: you can redistribute it and/or modify
 **  it under the terms of the GNU General Public License as published by
@@ -36,6 +36,8 @@ int main(int argc, char** argv)
   {
     std::string input_filename;
     std::string output_filename;
+    int timeout = 5000;
+    bool accurate = false;
     enum { kGridThumbnailer, kFourdThumbnailer } mode = kGridThumbnailer;
     ParamList params;
 
@@ -48,8 +50,24 @@ int main(int argc, char** argv)
 
     for(int i = 1; i < argc; ++i)
     {
-      if (strcmp(argv[i], "-o") == 0 ||
-          strcmp(argv[i], "--output") == 0)
+      if (strcmp(argv[i], "-h") == 0 ||
+          strcmp(argv[i], "--help") == 0)
+      {
+        std::cout << "Usage: " << argv[0] << " [OPTIONS] FILENAME" << std::endl;
+        std::cout << std::endl;
+        std::cout <<
+          "  -o, --output FILE      Write thumbnail to FILE\n"
+          "  -p, --params PARAMS    Pass additional parameter to the thumbnailer (e.g. cols=5,rows=3)\n"
+          "  --fourd                Use fourd thumbnailer\n"
+          "                           parameter: slices=INT\n"
+          "  --grid                 Use grid thumbnailer (default)\n"
+          "                           parameter: cols=INT,rows=INT\n"
+          "  -t, --timeout SECONDS  Wait for SECONDS before giving up, -1 for infinity\n"
+          "  -a, --accurate         Use accurate, but slow seeking\n";
+          exit(0);
+      }
+      else if (strcmp(argv[i], "-o") == 0 ||
+               strcmp(argv[i], "--output") == 0)
       {
         NEXT_ARG;
         output_filename = argv[i];
@@ -67,6 +85,17 @@ int main(int argc, char** argv)
       else if (strcmp(argv[i], "--grid") == 0)
       {
         mode = kGridThumbnailer;
+      }
+      else if (strcmp(argv[i], "--timeout") == 0 ||
+               strcmp(argv[i], "-t") == 0)
+      {
+        NEXT_ARG;
+        timeout = static_cast<int>(atof(argv[i]) * 1000.0);
+      }
+      else if (strcmp(argv[i], "--accurate") == 0 ||
+               strcmp(argv[i], "-a") == 0)
+      {
+        accurate = true;
       }
       else
       {
@@ -116,9 +145,15 @@ int main(int argc, char** argv)
         assert(!"never reached");
         break;
     }
-    VideoProcessor processor(mainloop, *thumbnailer, input_filename, 5000);
+
+    VideoProcessor processor(mainloop, *thumbnailer);
+    processor.set_timeout(timeout);
+    processor.set_accurate(accurate);
+    processor.open(input_filename);
     g_main_loop_run(mainloop);
+
     g_main_loop_unref(mainloop);
+    gst_deinit();
 
     thumbnailer->save(output_filename);
   }

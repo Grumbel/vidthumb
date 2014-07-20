@@ -37,7 +37,6 @@ private:
   Thumbnailer& m_thumbnailer;
 
   GstPipeline* m_pipeline;
-  GstElement* m_playbin;
   GstElement* m_fakesink;
 
   std::vector<gint64> m_thumbnailer_pos;
@@ -45,14 +44,17 @@ private:
   bool m_done;
   bool m_running;
   int  m_timeout;
+  bool m_accurate;
   GTimeVal m_last_screenshot;
 
 public:
   VideoProcessor(GMainLoop* mainloop,
-                 Thumbnailer& thumbnailer,
-                 const std::string& filename,
-                 int timeout = -1);
+                 Thumbnailer& thumbnailer);
   ~VideoProcessor();
+
+  void set_accurate(bool accurate);
+  void set_timeout(int timeout);
+  void open(const std::string& filename);
 
   gint64 get_duration();
   gint64 get_position();
