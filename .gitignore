@@ -1,4 +1,7 @@
-.sconsign.dblite
-*~
 *.o
-vidthumb
+*~
+/.sconsign.dblite
+/libgtest.a
+/libgtest_main.a
+/mediainfo
+/vidthumb
