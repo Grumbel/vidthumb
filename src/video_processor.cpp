@@ -60,7 +60,7 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   m_accurate(false),
   m_last_screenshot()
 {
-  GError* error = NULL;
+  GError* error = nullptr;
   m_pipeline = GST_PIPELINE(gst_parse_launch("filesrc name=mysource "
                                              "  ! decodebin "
                                              "  ! videoconvert "
@@ -143,7 +143,7 @@ void
 VideoProcessor::open(const std::string& filename)
 {
   GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
-  g_object_set(source, "location", filename.c_str(), NULL);
+  g_object_set(source, "location", filename.c_str(), nullptr);
   g_object_unref(source);
 
   // bring stream into pause state so that the thumbnailing can begin
@@ -303,14 +303,17 @@ VideoProcessor::on_bus_message(GstMessage* msg)
   if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_ERROR)
   {
     std::cout << "Error: ";
-    GError* gerror;
-    gchar* debug;
+    GError* gerror = nullptr;
+    gchar* debug = nullptr;
     gst_message_parse_error(msg, &gerror, &debug);
 
     std::cout << GST_MESSAGE_SRC_NAME(msg) << ": "
               << gerror->message << std::endl;
 
     queue_shutdown();
+
+    g_error_free(err);
+    g_free(dbg_info);
   }
   else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_STATE_CHANGED)
   {
@@ -340,7 +343,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
     if (false)
     {
       std::cout << "GST_MESSAGE_TAG" << std::endl;
-      GstTagList* tag_list;
+      GstTagList* tag_list = nullptr;
       gst_message_parse_tag(msg, &tag_list);
 
       gst_tag_list_foreach(tag_list,
@@ -351,6 +354,8 @@ VideoProcessor::on_bus_message(GstMessage* msg)
                              std::cout << "  tag: " << tag << std::endl;
                            },
                            this);
+
+      gst_tag_list_unref(tags_list);
     }
   }
   else if (GST_MESSAGE_TYPE(msg) & GST_MESSAGE_ASYNC_DONE)
@@ -362,7 +367,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
     std::cout << "GST_MESSAGE_STREAM_STATUS: ";
 
     GstStreamStatusType type;
-    GstElement* owner;
+    GstElement* owner = nullptr;
     gst_message_parse_stream_status(msg, &type, &owner);
 
     switch(type)
