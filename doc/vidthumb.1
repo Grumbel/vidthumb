@@ -1,0 +1,27 @@
+'\" -*- coding: us-ascii -*-
+.if \n(.g .ds T< \\FC
+.if \n(.g .ds T> \\F[\n[.fam]]
+.de URL
+\\$2 \(la\\$1\(ra\\$3
+..
+.if \n(.g .mso www.tmac
+.TH "vidthumb " 1 "21 July 2014" 0.1.0 "User Commands"
+.SH SYNOPSIS
+'nh
+.fi
+.ad l
+\fBvidthumb\fR \kx
+.if (\nx>(\n(.l/2)) .nr x (\n(.l/5)
+'in \n(.iu+\nxu
+[OPTION]\&...
+'in \n(.iu-\nxu
+.ad b
+'hy
+.SH DESCRIPTION
+\fBvidthumb\fR is a simple video thumbnailing application.
+.SH OPTIONS
+.TP 
+\*(T<\fB\-h\fR\*(T>, \*(T<\fB\-\-help\fR\*(T>
+Display help text and exit.
+.SH "SEE ALSO"
+\fBgalapix\fR(1)
