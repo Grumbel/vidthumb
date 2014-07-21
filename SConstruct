@@ -15,7 +15,7 @@
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 env = Environment(CXXFLAGS = [ "-O0", "-g3",
-                               "-std=c++0x",
+                               "-std=c++1y",
                                # "-ansi",
                                "-pedantic",
                                "-Wall",

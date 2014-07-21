@@ -21,6 +21,7 @@
 #include <cairomm/cairomm.h>
 #include <iostream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -30,22 +31,38 @@
 #include "thumbnailer.hpp"
 #include "video_processor.hpp"
 
-int main(int argc, char** argv)
+class Options
 {
-  try
-  {
-    std::string input_filename;
-    std::string output_filename;
-    int timeout = 5000;
-    bool accurate = false;
-    enum { kGridThumbnailer, kFourdThumbnailer } mode = kGridThumbnailer;
-    ParamList params;
+public:
+  std::string input_filename;
+  std::string output_filename;
+  int timeout;
+  bool accurate;
+  enum { kGridThumbnailer, kFourdThumbnailer } mode;
+  ParamList params;
 
+public:
+  Options() :
+    input_filename(),
+    output_filename(),
+    timeout(5000),
+    accurate(false),
+    mode(kGridThumbnailer),
+    params()
+  {}
+
+  void parse_args(int argc, char** argv);
+};
+
+void
+Options::parse_args(int argc, char** argv)
+{
 #define NEXT_ARG                                                        \
     if (i >= argc-1)                                                    \
     {                                                                   \
-      std::cout << argv[i] << " requires an argument" << std::endl;     \
-      return EXIT_FAILURE;                                              \
+      std::ostringstream out;                                           \
+      out << argv[i] << " requires an argument";                        \
+      throw std::runtime_error(out.str());                              \
     } else { i += 1; }
 
     for(int i = 1; i < argc; ++i)
@@ -106,37 +123,42 @@ int main(int argc, char** argv)
 
     if (input_filename.empty())
     {
-      std::cout << "Error: input filename required" << std::endl;
-      return EXIT_FAILURE;
+      throw std::runtime_error("input filename required");
     }
 
     if (output_filename.empty())
     {
-      std::cout << "Error: output filename required" << std::endl;
-      return EXIT_FAILURE;
-    }
+      throw std::runtime_error("output filename required");
+    } 
+}
 
-    std::cout << "input:  " << input_filename << std::endl;
-    std::cout << "output: " << output_filename << std::endl;
+int main(int argc, char** argv)
+{
+  try
+  {
+    Options opts;
+    opts.parse_args(argc, argv);
 
-    GMainLoop* mainloop = g_main_loop_new(NULL, false);
+    std::cout << "input:  " << opts.input_filename << std::endl;
+    std::cout << "output: " << opts.output_filename << std::endl;
+
     gst_init(&argc, &argv);
 
     std::unique_ptr<Thumbnailer> thumbnailer;
-    switch(mode)
+    switch(opts.mode)
     {
-      case kGridThumbnailer: {
+      case Options::kGridThumbnailer: {
         int cols = 4;
         int rows = 4;
-        params.get("cols", &cols);
-        params.get("rows", &rows);
+        opts.params.get("cols", &cols);
+        opts.params.get("rows", &rows);
         thumbnailer.reset(new GridThumbnailer(cols, rows));
         break;
       }
 
-      case kFourdThumbnailer: {
+      case Options::kFourdThumbnailer: {
         int slices = 100;
-        params.get("slices", &slices);
+        opts.params.get("slices", &slices);
         thumbnailer.reset(new FourdThumbnailer(slices));
         break;
       }
@@ -146,18 +168,19 @@ int main(int argc, char** argv)
         break;
     }
 
+    GMainLoop* mainloop = g_main_loop_new(NULL, false);
     {
       VideoProcessor processor(mainloop, *thumbnailer);
-      processor.set_timeout(timeout);
-      processor.set_accurate(accurate);
-      processor.open(input_filename);
+      processor.set_timeout(opts.timeout);
+      processor.set_accurate(opts.accurate);
+      processor.open(opts.input_filename);
       g_main_loop_run(mainloop);
     }
 
     g_main_loop_unref(mainloop);
     gst_deinit();
 
-    thumbnailer->save(output_filename);
+    thumbnailer->save(opts.output_filename);
   }
   catch(const std::exception& err)
   {
