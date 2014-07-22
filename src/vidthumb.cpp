@@ -24,6 +24,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
+#include <log.hpp>
 
 #include "fourd_thumbnailer.hpp"
 #include "grid_thumbnailer.hpp"
@@ -75,6 +76,8 @@ Options::parse_args(int argc, char** argv)
         std::cout << "Usage: " << argv[0] << " [OPTIONS] FILENAME" << std::endl;
         std::cout << std::endl;
         std::cout <<
+          "  -v, --verbose          Print verbose messages\n"
+          "  -d, --debug            Print debug messages\n"
           "  -o, --output FILE      Write thumbnail to FILE\n"
           "  -W, --width INT        Rescale the video to width\n"
           "  -H, --height INT       Rescale the video to height\n"
@@ -89,6 +92,16 @@ Options::parse_args(int argc, char** argv)
           "  -T, --timestamp        Timestamp the frames\n"
           "  -a, --accurate         Use accurate, but slow seeking\n";
         exit(0);
+      }
+      else if (strcmp(argv[i], "-d") == 0 ||
+               strcmp(argv[i], "--debug") == 0)
+      {
+        g_logger.incr_log_level(Logger::kDebug);
+      }
+      else if (strcmp(argv[i], "-v") == 0 ||
+               strcmp(argv[i], "--verbose") == 0)
+      {
+        g_logger.incr_log_level(Logger::kInfo);
       }
       else if (strcmp(argv[i], "-o") == 0 ||
                strcmp(argv[i], "--output") == 0)
@@ -158,7 +171,7 @@ Options::parse_args(int argc, char** argv)
     if (output_filename.empty())
     {
       throw std::runtime_error("output filename required");
-    } 
+    }
 }
 
 int main(int argc, char** argv)
@@ -168,10 +181,8 @@ int main(int argc, char** argv)
     Options opts;
     opts.parse_args(argc, argv);
 
-    std::cout << "input:  " << opts.input_filename << std::endl;
-    std::cout << "output: " << opts.output_filename << std::endl;
-
-    gst_init(&argc, &argv);
+    log_info("input:  %s", opts.input_filename);
+    log_info("output: %s", opts.output_filename);
 
     std::unique_ptr<Thumbnailer> thumbnailer;
     switch(opts.mode)
@@ -213,7 +224,11 @@ int main(int argc, char** argv)
   }
   catch(const std::exception& err)
   {
-    std::cerr << "Exception: " << err.what() << std::endl;
+    std::cerr << "error: " << err.what() << std::endl;
+  }
+  catch(...)
+  {
+    std::cerr << "error: unknown exception: " << std::endl;
   }
 
   return 0;

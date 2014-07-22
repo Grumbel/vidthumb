@@ -19,6 +19,7 @@
 #include <iostream>
 #include <typeinfo> 
 #include <glib.h>
+#include <log.hpp>
 
 #include "media_info.hpp"
 
@@ -74,8 +75,8 @@ struct ForEach
 
   void operator()(const Glib::ustring& foo)
   {
-    std::cout << "  name: " << foo << " " << m_tag_list.get_type(foo)
-              << std::endl;
+    log_info("  name: " << foo << " " << m_tag_list.get_type(foo)
+             );
   }
 };
 #endif
@@ -84,14 +85,14 @@ struct ForEach
 void
 MediaInfo::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
 {
-  //std::cout << "MediaInfo::on_bus_message" << std::endl;
+  //log_info("MediaInfo::on_bus_message");
 
   if (msg->get_message_type() & Gst::MESSAGE_ERROR)
   {
     Glib::RefPtr<Gst::MessageError> error_msg = Glib::RefPtr<Gst::MessageError>::cast_dynamic(msg);
-    std::cout << "Error: "
+    log_info("Error: "
               << msg->get_source()->get_name() << ": "
-              << error_msg->parse().what() << std::endl;
+              << error_msg->parse().what());
     //assert(!"Failure");
     Glib::signal_idle().connect(sigc::mem_fun(this, &MediaInfo::shutdown));
   }
@@ -103,7 +104,7 @@ MediaInfo::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
     Gst::State pending;
     state_msg->parse(oldstate, newstate, pending);
 
-    //std::cout << "-- message: " << msg->get_source()->get_name() << " " << oldstate << " " << newstate << std::endl;
+    //log_info("-- message: " << msg->get_source()->get_name() << " " << oldstate << " " << newstate);
 
     if (msg->get_source() == m_pipeline && newstate == Gst::STATE_PAUSED)
     {
@@ -115,17 +116,17 @@ MediaInfo::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
   {
     if (true)
     {
-      std::cout << "TAG: " << std::endl;
+      log_info("TAG: ");
       auto tag_msg = Glib::RefPtr<Gst::MessageTag>::cast_dynamic(msg);
-      std::cout << "<<<<<<<<<<<<<<: " << tag_msg << std::endl;
+      log_info("<<<<<<<<<<<<<<: " << tag_msg);
       Gst::TagList tag_list = tag_msg->parse();
-      std::cout << "  is_empty: " << tag_list.is_empty() << std::endl;
+      log_info("  is_empty: " << tag_list.is_empty());
       tag_list.foreach(ForEach(tag_list));
-      std::cout << ">>>>>>>>>>>>>>" << std::endl;
+      log_info(">>>>>>>>>>>>>>");
       if (false) // does not work
       {
         Glib::RefPtr<Gst::Pad> pad = tag_msg->parse_pad();
-        std::cout << " PAD: " << pad << std::endl;
+        log_info(" PAD: " << pad);
       }
     }
   }
@@ -134,8 +135,8 @@ MediaInfo::on_bus_message(const Glib::RefPtr<Gst::Message>& msg)
 bool do_foreach(const Glib::ustring& str, const Glib::ValueBase& value)
 {
   //auto& v = reinterpret_cast<const Glib::Value<int>& >(value);
-  std::cout << "   -- field: " << str << " " << typeid(&value).name() << " "
-            << std::endl;
+  log_info("   -- field: " << str << " " << typeid(&value).name() << " "
+           );
   return true; // continue looping
 }
 #endif
@@ -180,33 +181,33 @@ MediaInfo::get_information()
     Gst::Fraction m_aspect_ratio;
     if (structure.get_field("pixel-aspect-ratio", m_aspect_ratio))
     {
-      std::cout << "  ## PixelAspectRatio: '" << m_aspect_ratio.num << "/" << m_aspect_ratio.denom << "'" << std::endl;
+      log_info("  ## PixelAspectRatio: '" << m_aspect_ratio.num << "/" << m_aspect_ratio.denom << "'");
     }
 
     Gst::Fraction m_framerate;
     if (structure.get_field("framerate", m_framerate))
     {
-      std::cout << "  ## Framerate: " << m_framerate.num << "/" << m_framerate.denom << std::endl;
+      log_info("  ## Framerate: " << m_framerate.num << "/" << m_framerate.denom);
     }
 
     bool m_interlaced;
     if (structure.get_field("interlaced", m_interlaced))
     {
-      std::cout << "  ## Interlaced: " << m_interlaced << std::endl;
+      log_info("  ## Interlaced: " << m_interlaced);
     }
 
     Gst::Fourcc m_format;
     if (structure.get_field("format", m_format))
     {
-      std::cout << "  ## Format: " << m_format.get_fourcc() << " "
+      log_info("  ## Format: " << m_format.get_fourcc() << " "
                 << m_format.first << " "
                 << m_format.second << " "
                 << m_format.third << " "
                 << m_format.fourth << " "
-                << std::endl;
+               );
     }
 
-    std::cout << "  ## WidthxHeight: " << m_width << "x" << m_height << std::endl;
+    log_info("  ## WidthxHeight: " << m_width << "x" << m_height);
   }
 #endif
 }
@@ -214,7 +215,7 @@ MediaInfo::get_information()
 bool
 MediaInfo::shutdown()
 {
-  std::cout << "Going to shutdown!!!!!!!!!!!" << std::endl;
+  log_info("Going to shutdown!!!!!!!!!!!");
   gst_element_set_state(m_playbin, GST_STATE_NULL);
   g_main_loop_quit(m_mainloop);
   return false;
@@ -228,24 +229,24 @@ int main(int argc, char** argv)
   {
     try 
     {
-      std::cout << "----------------------------------------------------------------------------------" << std::endl;
+      log_info("----------------------------------------------------------------------------------");
       MediaInfo video(argv[i]);
-      std::cout << "Duration: " << video.get_duration() 
-                << " - "
-                << static_cast<int>(video.get_duration() / (GST_SECOND * 60 * 60)) << ":"
-                << static_cast<int>(video.get_duration() / (GST_SECOND * 60)) % 60 << ":"
-                << static_cast<int>(video.get_duration() / GST_SECOND) % 60
-                << std::endl;
-      std::cout << "Frames:   " << video.get_frames() << std::endl;
-      std::cout << "Bytes:    " << video.get_bytes() << std::endl;
-      std::cout << "Buffers:  " << video.get_buffers() << std::endl;
-      std::cout << "Size:     " << video.get_width() << "x" << video.get_height() << std::endl;
+      log_info("Duration: %s - %s:%s:%s",
+               video.get_duration(),
+               static_cast<int>(video.get_duration() / (GST_SECOND * 60 * 60)),
+               static_cast<int>(video.get_duration() / (GST_SECOND * 60)) % 60,
+               static_cast<int>(video.get_duration() / GST_SECOND) % 60);
+      log_info("Frames:   %s", video.get_frames());
+      log_info("Bytes:    %s", video.get_bytes());
+      log_info("Buffers:  %s", video.get_buffers());
+      log_info("Size:     %dx%d", video.get_width(), video.get_height());
     }
     catch(const std::exception& err)
     {
-      std::cout << "Exception: " << err.what() << std::endl;
+      log_info("Exception: ", err.what());
     }
   }
+  gst_deinit();
   
   return 0;
 }

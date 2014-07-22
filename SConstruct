@@ -30,15 +30,13 @@ env = Environment(CXXFLAGS = [ "-O0", "-g3",
                                "-Winit-self", # only works with >= -O1
                                "-Wno-unused-parameter"])
 
+liblogmich = env.StaticLibrary("logmich", ["external/logmich/src/log.cpp"])
+env.Append(LIBS = [liblogmich])
+env.Append(CPPPATH = "external/logmich/src/")
+
 env.ParseConfig("pkg-config --cflags --libs gstreamer-1.0 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs glib-2.0 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs cairomm-1.0 | sed 's/-I/-isystem/g'")
-
-Default(env.Program("vidthumb", ["src/fourd_thumbnailer.cpp",
-                         "src/grid_thumbnailer.cpp",
-                         "src/param_list.cpp",
-                         "src/video_processor.cpp",
-                         "src/vidthumb.cpp"]))
 
 Default(env.Program("mediainfo", ["src/media_info.cpp"]))
 
@@ -60,5 +58,12 @@ test_prog = gtest_env.Program("test_vidthumb",
                               + libgtest)
 Alias("test", test_prog)
 Default("test")
+
+Default(env.Program("vidthumb",
+                    ["src/fourd_thumbnailer.cpp",
+                     "src/grid_thumbnailer.cpp",
+                     "src/param_list.cpp",
+                     "src/video_processor.cpp",
+                     "src/vidthumb.cpp"]))
 
 # EOF #
