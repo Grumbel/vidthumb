@@ -24,11 +24,19 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
+#include <boost/optional.hpp>
 
 #include <glib.h>
 #include <gst/gst.h>
 
 class Thumbnailer;
+
+struct VideoProcessorOptions
+{
+  boost::optional<int> width = {};
+  boost::optional<int> height = {};
+  bool keep_aspect_ratio = true;
+};
 
 class VideoProcessor final
 {
@@ -48,6 +56,8 @@ private:
   bool m_accurate;
   GTimeVal m_last_screenshot;
 
+  VideoProcessorOptions m_opts;
+
 public:
   VideoProcessor(GMainLoop* mainloop,
                  Thumbnailer& thumbnailer);
@@ -55,7 +65,10 @@ public:
 
   void set_accurate(bool accurate);
   void set_timeout(int timeout);
+  void set_options(const VideoProcessorOptions opts);
   void open(const std::string& filename);
+  void setup_pipeline();
+  std::string get_pipeline_desc() const;
 
   gint64 get_duration();
   gint64 get_position();

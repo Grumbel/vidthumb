@@ -22,6 +22,7 @@
 #include <assert.h>
 #include <cairomm/cairomm.h>
 #include <iostream>
+#include <sstream>
 #include <stdexcept>
 #include <vector>
 
@@ -58,19 +59,68 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   m_timeout_id(0),
   m_timeout(-1),
   m_accurate(false),
-  m_last_screenshot()
+  m_last_screenshot(),
+  m_opts()
 {
+}
+
+VideoProcessor::~VideoProcessor()
+{
+  if (m_timeout_id)
+  {
+    g_source_remove(m_timeout_id);
+    m_timeout_id = 0;
+  }
+
+  g_object_unref(m_fakesink);
+  g_object_unref(m_pipeline);
+}
+
+std::string
+VideoProcessor::get_pipeline_desc() const
+{
+  std::ostringstream pipeline_desc;
+
+  pipeline_desc <<
+    "filesrc name=mysource "
+    "  ! decodebin "
+    "  ! videoscale "
+    "  ! videoconvert ";
+
+  // force output format
+  pipeline_desc << "  ! video/x-raw,format=BGRx";
+  if (m_opts.width)
+  {
+    pipeline_desc << ",width=" << *m_opts.width;
+  }
+
+  if (m_opts.height)
+  {
+    pipeline_desc << ",height=" << *m_opts.height;
+  }
+
+  if (m_opts.keep_aspect_ratio)
+  {
+    pipeline_desc << ",pixel-aspect-ratio=1/1";
+  }
+
+  pipeline_desc << "  ! fakesink name=mysink signal-handoffs=True sync=False ";
+
+  return pipeline_desc.str();
+}
+
+void
+VideoProcessor::setup_pipeline()
+{
+  auto pipeline_desc = get_pipeline_desc();
+  std::cout << "Using pipeline: " << pipeline_desc << std::endl;
   GError* error = nullptr;
-  m_pipeline = GST_PIPELINE(gst_parse_launch("filesrc name=mysource "
-                                             "  ! decodebin "
-                                             "  ! videoconvert "
-                                             //"  ! videoscale "
-                                             "  ! video/x-raw,format=BGRx " //depth=24,bpp=32,pixel-aspect-ratio=1/1 " // ,width=180
-                                             "  ! fakesink name=mysink signal-handoffs=True", //sync=False
-                                             &error));
+  m_pipeline = GST_PIPELINE(gst_parse_launch(pipeline_desc.c_str(), &error));
   if (error)
   {
-    throw std::runtime_error(error->message);
+    std::runtime_error exception(error->message);
+    g_error_free(error);
+    throw exception;
   }
 
   m_fakesink = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysink");
@@ -98,22 +148,16 @@ VideoProcessor::VideoProcessor(GMainLoop* mainloop,
   g_object_unref(thumbnail_bus);
 }
 
-VideoProcessor::~VideoProcessor()
-{
-  if (m_timeout_id)
-  {
-    g_source_remove(m_timeout_id);
-    m_timeout_id = 0;
-  }
-
-  g_object_unref(m_fakesink);
-  g_object_unref(m_pipeline);
-}
-
 void
 VideoProcessor::set_accurate(bool accurate)
 {
   m_accurate = accurate;
+}
+
+void
+VideoProcessor::set_options(const VideoProcessorOptions opts)
+{
+  m_opts = opts;
 }
 
 void
@@ -142,12 +186,14 @@ VideoProcessor::set_timeout(int timeout)
 void
 VideoProcessor::open(const std::string& filename)
 {
+  setup_pipeline();
+
   GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
   g_object_set(source, "location", filename.c_str(), nullptr);
   g_object_unref(source);
 
   // bring stream into pause state so that the thumbnailing can begin
-  gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PAUSED);  
+  gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PAUSED);
 }
 
 gint64
@@ -281,7 +327,6 @@ VideoProcessor::on_preroll_handoff(GstElement* fakesink, GstBuffer* buffer, GstP
 {
   if (m_running)
   {
-    std::cout << "-------- preroll-handoff: " << buffer << " " << pad << std::endl;
     g_get_current_time(&m_last_screenshot);
     auto img = buffer2cairo(buffer, pad);
     m_thumbnailer.receive_frame(img, get_position());
@@ -292,7 +337,6 @@ VideoProcessor::on_preroll_handoff(GstElement* fakesink, GstBuffer* buffer, GstP
         return false;
       };
     g_idle_add(callback, this);
-    //g_timeout_add(100, callback, this);
   }
 }
 

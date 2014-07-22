@@ -36,6 +36,7 @@ class Options
 public:
   std::string input_filename;
   std::string output_filename;
+  VideoProcessorOptions vp_opts;
   int timeout;
   bool accurate;
   enum { kGridThumbnailer, kFourdThumbnailer } mode;
@@ -45,6 +46,7 @@ public:
   Options() :
     input_filename(),
     output_filename(),
+    vp_opts(),
     timeout(5000),
     accurate(false),
     mode(kGridThumbnailer),
@@ -74,12 +76,17 @@ Options::parse_args(int argc, char** argv)
         std::cout << std::endl;
         std::cout <<
           "  -o, --output FILE      Write thumbnail to FILE\n"
+          "  -W, --width INT        Rescale the video to width\n"
+          "  -H, --height INT       Rescale the video to height\n"
+          "  -A, --ignore-aspect-ratio\n"
+          "                         Ignore aspect-ratio\n"
           "  -p, --params PARAMS    Pass additional parameter to the thumbnailer (e.g. cols=5,rows=3)\n"
           "  --fourd                Use fourd thumbnailer\n"
           "                           parameter: slices=INT\n"
           "  --grid                 Use grid thumbnailer (default)\n"
           "                           parameter: cols=INT,rows=INT\n"
           "  -t, --timeout SECONDS  Wait for SECONDS before giving up, -1 for infinity\n"
+          "  -T, --timestamp        Timestamp the frames\n"
           "  -a, --accurate         Use accurate, but slow seeking\n";
         exit(0);
       }
@@ -88,6 +95,23 @@ Options::parse_args(int argc, char** argv)
       {
         NEXT_ARG;
         output_filename = argv[i];
+      }
+      else if (strcmp(argv[i], "-W") == 0 ||
+               strcmp(argv[i], "--width") == 0)
+      {
+        NEXT_ARG;
+        vp_opts.width = atoi(argv[i]);
+      }
+      else if (strcmp(argv[i], "-H") == 0 ||
+               strcmp(argv[i], "--height") == 0)
+      {
+        NEXT_ARG;
+        vp_opts.height = atoi(argv[i]);
+      }
+      else if (strcmp(argv[i], "-A") == 0 ||
+               strcmp(argv[i], "--ignore-aspect-ratio") == 0)
+      {
+        vp_opts.keep_aspect_ratio = false;
       }
       else if (strcmp(argv[i], "-p") == 0 ||
                strcmp(argv[i], "--params") == 0)
@@ -113,6 +137,11 @@ Options::parse_args(int argc, char** argv)
                strcmp(argv[i], "-a") == 0)
       {
         accurate = true;
+      }
+      else if (strcmp(argv[i], "--timestamp") == 0 ||
+               strcmp(argv[i], "-T") == 0)
+      {
+        // FIXME: implement me
       }
       else
       {
@@ -168,23 +197,23 @@ int main(int argc, char** argv)
         break;
     }
 
+    gst_init(&argc, &argv);
     GMainLoop* mainloop = g_main_loop_new(NULL, false);
     {
       VideoProcessor processor(mainloop, *thumbnailer);
+      processor.set_options(opts.vp_opts);
       processor.set_timeout(opts.timeout);
       processor.set_accurate(opts.accurate);
       processor.open(opts.input_filename);
       g_main_loop_run(mainloop);
+      thumbnailer->save(opts.output_filename);
     }
-
     g_main_loop_unref(mainloop);
     gst_deinit();
-
-    thumbnailer->save(opts.output_filename);
   }
   catch(const std::exception& err)
   {
-    std::cout << "Exception: " << err.what() << std::endl;
+    std::cerr << "Exception: " << err.what() << std::endl;
   }
 
   return 0;
