@@ -30,7 +30,8 @@ env = Environment(CXXFLAGS = [ "-O0", "-g3",
                                "-Winit-self", # only works with >= -O1
                                "-Wno-unused-parameter"])
 
-liblogmich = env.StaticLibrary("logmich", ["external/logmich/src/log.cpp"])
+liblogmich = env.StaticLibrary("logmich", ["external/logmich/src/logmich.cpp",
+                                           "external/logmich/src/logger.cpp"])
 env.Append(LIBS = [liblogmich, "boost_system", "boost_filesystem"])
 env.Append(CPPPATH = "external/logmich/src/")
 
