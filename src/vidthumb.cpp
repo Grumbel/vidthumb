@@ -24,7 +24,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <log.hpp>
+#include <logmich.hpp>
 
 #include "fourd_thumbnailer.hpp"
 #include "grid_thumbnailer.hpp"
@@ -99,12 +99,12 @@ Options::parse_args(int argc, char** argv)
       else if (strcmp(argv[i], "-d") == 0 ||
                strcmp(argv[i], "--debug") == 0)
       {
-        g_logger.incr_log_level(Logger::kDebug);
+        logmich::incr_log_level(logmich::kDebug);
       }
       else if (strcmp(argv[i], "-v") == 0 ||
                strcmp(argv[i], "--verbose") == 0)
       {
-        g_logger.incr_log_level(Logger::kInfo);
+        logmich::incr_log_level(logmich::kInfo);
       }
       else if (strcmp(argv[i], "-o") == 0 ||
                strcmp(argv[i], "--output") == 0)

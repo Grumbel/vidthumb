@@ -19,7 +19,7 @@
 #include <iostream>
 #include <typeinfo> 
 #include <glib.h>
-#include <log.hpp>
+#include <logmich.hpp>
 
 #include "media_info.hpp"
 

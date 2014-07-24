@@ -25,7 +25,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <log.hpp>
+#include <logmich.hpp>
 
 #include "thumbnailer.hpp"
 

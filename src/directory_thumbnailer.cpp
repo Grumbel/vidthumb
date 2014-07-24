@@ -21,7 +21,7 @@
 #include <boost/filesystem/path.hpp>
 #include <boost/filesystem/operations.hpp>
 #include <boost/format.hpp>
-#include <log.hpp>
+#include <logmich.hpp>
 
 DirectoryThumbnailer::DirectoryThumbnailer(int num) :
   m_num(num),
