@@ -31,10 +31,11 @@ env = Environment(CXXFLAGS = [ "-O0", "-g3",
                                "-Wno-unused-parameter"])
 
 liblogmich = env.StaticLibrary("logmich", ["external/logmich/src/log.cpp"])
-env.Append(LIBS = [liblogmich])
+env.Append(LIBS = [liblogmich, "boost_system", "boost_filesystem"])
 env.Append(CPPPATH = "external/logmich/src/")
 
 env.ParseConfig("pkg-config --cflags --libs gstreamer-1.0 | sed 's/-I/-isystem/g'")
+env.ParseConfig("pkg-config --cflags --libs gstreamer-1.0 gstreamer-pbutils-1.0 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs glib-2.0 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs cairomm-1.0 | sed 's/-I/-isystem/g'")
 
@@ -62,6 +63,7 @@ Default("test")
 Default(env.Program("vidthumb",
                     ["src/fourd_thumbnailer.cpp",
                      "src/grid_thumbnailer.cpp",
+                     "src/directory_thumbnailer.cpp",
                      "src/param_list.cpp",
                      "src/video_processor.cpp",
                      "src/vidthumb.cpp"]))

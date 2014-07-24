@@ -28,6 +28,7 @@
 
 #include "fourd_thumbnailer.hpp"
 #include "grid_thumbnailer.hpp"
+#include "directory_thumbnailer.hpp"
 #include "param_list.hpp"
 #include "thumbnailer.hpp"
 #include "video_processor.hpp"
@@ -40,7 +41,7 @@ public:
   VideoProcessorOptions vp_opts;
   int timeout;
   bool accurate;
-  enum { kGridThumbnailer, kFourdThumbnailer } mode;
+  enum { kDirectoryThumbnailer, kGridThumbnailer, kFourdThumbnailer } mode;
   ParamList params;
 
 public:
@@ -88,6 +89,8 @@ Options::parse_args(int argc, char** argv)
           "                           parameter: slices=INT\n"
           "  --grid                 Use grid thumbnailer (default)\n"
           "                           parameter: cols=INT,rows=INT\n"
+          "  --directory            Use directory thumbnailer (default)\n"
+          "                           parameter: num=INT\n"
           "  -t, --timeout SECONDS  Wait for SECONDS before giving up, -1 for infinity\n"
           "  -T, --timestamp        Timestamp the frames\n"
           "  -a, --accurate         Use accurate, but slow seeking\n";
@@ -139,6 +142,10 @@ Options::parse_args(int argc, char** argv)
       else if (strcmp(argv[i], "--grid") == 0)
       {
         mode = kGridThumbnailer;
+      }
+      else if (strcmp(argv[i], "--directory") == 0)
+      {
+        mode = kDirectoryThumbnailer;
       }
       else if (strcmp(argv[i], "--timeout") == 0 ||
                strcmp(argv[i], "-t") == 0)
@@ -193,6 +200,13 @@ int main(int argc, char** argv)
         opts.params.get("cols", &cols);
         opts.params.get("rows", &rows);
         thumbnailer.reset(new GridThumbnailer(cols, rows));
+        break;
+      }
+
+      case Options::kDirectoryThumbnailer: {
+        int num = 16;
+        opts.params.get("num", &num);
+        thumbnailer.reset(new DirectoryThumbnailer(num));
         break;
       }
 
