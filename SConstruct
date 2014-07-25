@@ -14,7 +14,7 @@
 ##  You should have received a copy of the GNU General Public License
 ##  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-env = Environment(CXXFLAGS = [ "-O0", "-g3",
+env = Environment(CXXFLAGS = [ "-O3", "-g3",
                                "-std=c++1y",
                                # "-ansi",
                                "-pedantic",
@@ -30,10 +30,10 @@ env = Environment(CXXFLAGS = [ "-O0", "-g3",
                                "-Winit-self", # only works with >= -O1
                                "-Wno-unused-parameter"])
 
-liblogmich = env.StaticLibrary("logmich", ["external/logmich/src/logmich.cpp",
+liblogmich = env.StaticLibrary("logmich", ["external/logmich/src/log.cpp",
                                            "external/logmich/src/logger.cpp"])
 env.Append(LIBS = [liblogmich, "boost_system", "boost_filesystem"])
-env.Append(CPPPATH = "external/logmich/src/")
+env.Append(CPPPATH = "external/logmich/include/")
 
 env.ParseConfig("pkg-config --cflags --libs gstreamer-1.0 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs gstreamer-1.0 gstreamer-pbutils-1.0 | sed 's/-I/-isystem/g'")
@@ -41,6 +41,7 @@ env.ParseConfig("pkg-config --cflags --libs glib-2.0 | sed 's/-I/-isystem/g'")
 env.ParseConfig("pkg-config --cflags --libs cairomm-1.0 | sed 's/-I/-isystem/g'")
 
 Default(env.Program("mediainfo", ["src/media_info.cpp"]))
+Default(env.Program("gstdiscover", ["src/gstdiscover.c"]))
 
 for filename in Glob("uitests/*_test.cpp", strings=True):
     uitest_prog = env.Program(filename[:-4], filename)

@@ -24,7 +24,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-#include <logmich.hpp>
+#include <logmich/log.hpp>
 
 #include "fourd_thumbnailer.hpp"
 #include "grid_thumbnailer.hpp"

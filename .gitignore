@@ -3,5 +3,6 @@
 /.sconsign.dblite
 /libgtest.a
 /libgtest_main.a
+/liblogmich.a
 /mediainfo
 /vidthumb
