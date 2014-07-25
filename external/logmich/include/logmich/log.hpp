@@ -60,9 +60,9 @@ inline LogLevel get_log_level()
   } while(false)
 
 #define log_warn(...) do {                                              \
-    if (logmich::g_logger.get_log_level() >= logmich::kWarn)                      \
+    if (logmich::g_logger.get_log_level() >= logmich::kWarning)                      \
     {                                                                   \
-      logmich::g_logger.append_format(logmich::kWarn, __FILE__, __LINE__, __VA_ARGS__); \
+      logmich::g_logger.append_format(logmich::kWarning, __FILE__, __LINE__, __VA_ARGS__); \
     }                                                                   \
   } while(false)
 

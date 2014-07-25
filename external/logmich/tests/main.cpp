@@ -17,15 +17,31 @@
 //    misrepresented as being the original software.
 // 3. This notice may not be removed or altered from any source distribution.
 
-#include "logmich.hpp"
+#include <logmich/log.hpp>
 
 int main()
 {
   logmich::set_log_level(logmich::kInfo);
-  log_info("hello world");
-  //g_logger.append_format_unchecked(Logger::kInfo, "hello world %s %05d", "STRING", 5);
-  log_info("hello world %s %05d", "STRING", 5);
-  log_info("hello world");
+  log_error("error level log message");
+  log_warn("warring level log message");
+  log_info("info level log message");
+  log_debug("debug level log message [invisible]");
+  log_tmp("tmp level log message [invisible]");
+
+  logmich::set_log_level(logmich::kTemp);
+  log_error("error level log message with format: %d", 5);
+  log_warn("warring level log message with format: %d", 10);
+  log_info("info level log message with format: %s", "Hello World");
+  log_debug("debug level log message with format: %d %d %d %d", 1, 2, 3, 4);
+  log_tmp("tmp level log message %d", 42);
+
+
+  logmich::set_log_level(logmich::kInfo);
+  log_debug("this should not be visible [invisible]");
+  logmich::set_log_level(logmich::kTemp);
+  log_debug("this should be visible");
+  log_tmp("this should be visible");
+
   return 0;
 }
 

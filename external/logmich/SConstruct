@@ -14,6 +14,10 @@ env = Environment(CXXFLAGS = [ "-O0", "-g3",
                                "-Winit-self", # only works with >= -O1
                                "-Wno-unused-parameter"])
 
-env.Program("main", Glob("src/*.cpp"))
+env.Append(CPPPATH = "include/")
+liblogmich = env.StaticLibrary("logmich", Glob("src/*.cpp"))
+
+env.Append(LIBS = [liblogmich])
+env.Program("main", Glob("tests/main.cpp"))
 
 # EOF #
