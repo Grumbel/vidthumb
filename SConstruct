@@ -48,12 +48,12 @@ for filename in Glob("uitests/*_test.cpp", strings=True):
     Default(uitest_prog)
 
 gtest_env = Environment()
-gtest_env.Append(CXXFLAGS = ["-isystemexternal/gtest-1.7.0/include/",
-                             "-isystemexternal/gtest-1.7.0/"])
+gtest_env.Append(CXXFLAGS = ["-isystemexternal/googletest/include/",
+                             "-isystemexternal/googletest/"])
 gtest_env.Append(LIBS = ["pthread"])
 
-libgtest = gtest_env.StaticLibrary("gtest", "external/gtest-1.7.0/src/gtest-all.cc")
-libgtest_main = gtest_env.StaticLibrary("gtest_main", "external/gtest-1.7.0/src/gtest_main.cc")
+libgtest = gtest_env.StaticLibrary("gtest", "external/googletest/src/gtest-all.cc")
+libgtest_main = gtest_env.StaticLibrary("gtest_main", "external/googletest/src/gtest_main.cc")
 
 test_prog = gtest_env.Program("test_vidthumb",
                               Glob("tests/*_test.cpp")
