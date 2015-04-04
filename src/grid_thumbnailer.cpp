@@ -38,7 +38,7 @@ GridThumbnailer::save(const std::string& filename)
     m_buffer->write_to_png(filename);
   }
 }
-  
+
 std::vector<gint64>
 GridThumbnailer::get_thumbnail_pos(gint64 duration)
 {
@@ -52,12 +52,12 @@ GridThumbnailer::get_thumbnail_pos(gint64 duration)
 }
 
 void
-GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos) 
+GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos)
 {
   if (!m_buffer)
   {
-    m_buffer = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24, 
-                                           img->get_width()  * m_cols, 
+    m_buffer = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24,
+                                           img->get_width()  * m_cols,
                                            img->get_height() * m_rows);
   }
 
@@ -69,7 +69,7 @@ GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 po
   cr->paint();
 
   cr->set_font_size(12.0);
-  cr->select_font_face ("Sans", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL); 
+  cr->select_font_face ("Sans", Cairo::FONT_SLANT_NORMAL, Cairo::FONT_WEIGHT_NORMAL);
   Cairo::FontOptions font_options;
   font_options.set_hint_metrics (Cairo::HINT_METRICS_ON);
   font_options.set_hint_style(Cairo::HINT_STYLE_FULL);

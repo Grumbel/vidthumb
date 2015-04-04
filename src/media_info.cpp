@@ -17,7 +17,7 @@
 */
 
 #include <iostream>
-#include <typeinfo> 
+#include <typeinfo>
 #include <glib.h>
 #include <logmich/log.hpp>
 
@@ -147,7 +147,7 @@ MediaInfo::get_information()
 #if 0
   GstFormat time_format;
 
-  // does not work 
+  // does not work
   time_format = GST_FORMAT_DEFAULT;
   m_playbin->query_duration(time_format, m_frames);
 
@@ -169,14 +169,14 @@ MediaInfo::get_information()
 
     structure.get_field("width",  m_width);
     structure.get_field("height", m_height);
-    
+
     //*       "framerate", G_TYPE_DOUBLE, 25.0,
     //*       "pixel-aspect-ratio", GST_TYPE_FRACTION, 1, 1,
 
-    //-- field: framerate 
-    //-- field: format 
-    //-- field: interlaced 
-    //-- field: pixel-aspect-ratio 
+    //-- field: framerate
+    //-- field: format
+    //-- field: interlaced
+    //-- field: pixel-aspect-ratio
 
     Gst::Fraction m_aspect_ratio;
     if (structure.get_field("pixel-aspect-ratio", m_aspect_ratio))
@@ -227,7 +227,7 @@ int main(int argc, char** argv)
 
   for(int i = 1; i < argc; ++i)
   {
-    try 
+    try
     {
       log_info("----------------------------------------------------------------------------------");
       MediaInfo video(argv[i]);
@@ -247,7 +247,7 @@ int main(int argc, char** argv)
     }
   }
   gst_deinit();
-  
+
   return 0;
 }
 

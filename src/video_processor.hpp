@@ -78,11 +78,11 @@ public:
   void on_preroll_handoff(GstElement *fakesink, GstBuffer *buffer, GstPad *pad);
   void shutdown();
   void queue_shutdown();
-  
+
   bool on_timeout();
 
 private:
-  
+
 
 private:
   VideoProcessor(const VideoProcessor&) = delete;

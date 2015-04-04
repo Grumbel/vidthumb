@@ -42,7 +42,7 @@ public:
   std::vector<gint64> get_thumbnail_pos(gint64 duration) override;
   void receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos) override;
   void save(const std::string& filename) override;
-  
+
 private:
   DirectoryThumbnailer(const DirectoryThumbnailer&) = delete;
   DirectoryThumbnailer& operator=(const DirectoryThumbnailer&) = delete;

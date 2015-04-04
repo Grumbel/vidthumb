@@ -32,7 +32,7 @@ private:
 public:
   GridThumbnailer(int cols, int rows);
 
-  void save(const std::string& filename);  
+  void save(const std::string& filename);
   std::vector<gint64> get_thumbnail_pos(gint64 duration);
   void receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 pos);
 };

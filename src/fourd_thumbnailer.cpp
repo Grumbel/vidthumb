@@ -41,7 +41,7 @@ FourdThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 p
 {
   if (!m_buffer)
   {
-    m_buffer = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24, 
+    m_buffer = Cairo::ImageSurface::create(Cairo::FORMAT_RGB24,
                                            img->get_width() * 10,
                                            img->get_height());
   }
@@ -49,7 +49,7 @@ FourdThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 p
   Cairo::RefPtr<Cairo::Context> cr = Cairo::Context::create(m_buffer);
 
   int slice_width = m_buffer->get_width() / m_slices;
-  cr->rectangle((slice_width * m_count), 0, 
+  cr->rectangle((slice_width * m_count), 0,
                 slice_width, m_buffer->get_height());
   cr->clip();
 

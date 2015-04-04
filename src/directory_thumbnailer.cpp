@@ -51,7 +51,7 @@ void
 DirectoryThumbnailer::save(const std::string& directory_str)
 {
   boost::filesystem::path directory(directory_str);
-  
+
   if (!boost::filesystem::is_directory(directory))
   {
     boost::filesystem::create_directory(directory);

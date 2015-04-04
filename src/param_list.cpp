@@ -52,7 +52,7 @@ ParamList::ParamList(const std::string& str) :
 
 void
 ParamList::parse_string(const std::string& str)
-{ 
+{
   typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
   tokenizer tokens(str, boost::char_separator<char>(",", ""));
 
@@ -82,7 +82,7 @@ ParamList::get(const std::string& name, int* value)
   }
 }
 
-bool      
+bool
 ParamList::get(const std::string& name, double* value)
 {
   auto it = m_params.find(name);
@@ -97,7 +97,7 @@ ParamList::get(const std::string& name, double* value)
   }
 }
 
-bool       
+bool
 ParamList::get(const std::string& name, bool* value)
 {
   auto it = m_params.find(name);
@@ -134,7 +134,7 @@ int main(int argc, char** argv)
   for(int i = 1; i < argc; ++i)
   {
     ParamList params(argv[i]);
-    
+
     {
       std::string value = "<empty>";
       params.get("width", &value);

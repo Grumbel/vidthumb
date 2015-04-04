@@ -32,7 +32,7 @@ public:
   int get_height() const { return m_height; }
 
   //bool on_buffer_probe(GstPad* pad, const GstMiniObject* miniobj);
-  
+
   //void on_bus_message(const Glib::RefPtr<Gst::Message>& msg);
   void get_information();
   bool shutdown();
