@@ -25,33 +25,38 @@ import subprocess
 import zipfile
 
 
-def do_thumbnails(filename, outputdir):
+# FIXME: make generators configurable, take better care of the filenames
+def do_thumbnails(filename, outputdir, zipfilename, generator):
     filename = os.path.abspath(filename)
     tmpdir = tempfile.mkdtemp()
     base = os.path.basename(filename)
-    outputpattern = os.path.join(tmpdir, base + "-%03d.jpg")
+    outputpattern = os.path.join(tmpdir, base + "-%08d.jpg")
 
-    if True:
+    if generator == 'mpv':
         subprocess.check_call(['mpv',
                                '--ao', 'null',
                                '--quiet',
                                '--vo', 'image:outdir=' + tmpdir,
                                '--sstep', '60',
                                filename])
-    elif False:
+    elif generator == 'mplayer':
         subprocess.check_call(['mplayer',
                                '-nosound',
                                '-quiet',
                                '-vo', 'jpeg:outdir=' + tmpdir,
                                '-sstep', '60',
                                filename])
-    else:
+    elif generator == 'ffmpeg':
         subprocess.check_call(['ffmpeg',
                                '-i', filename,
                                '-vf', 'fps=1/60',
                                outputpattern])
+    else:
+        raise Exception("invalid generator: {}".format(generator))
 
-    zipfilename = os.path.join(outputdir, base + ".zip")
+    if zipfilename is None:
+        zipfilename = os.path.join(outputdir, base + ".zip")
+
     print("Building .zip file: {}".format(zipfilename))
     with zipfile.ZipFile(zipfilename + ".part", mode='w') as archive:
         for f in os.listdir(tmpdir):
@@ -67,15 +72,37 @@ def main():
     parser = argparse.ArgumentParser(description='Create .zip files with video thumbnails')
     parser.add_argument('FILE', action='store', type=str, nargs='+',
                         help='Video file to thumbnail')
-    parser.add_argument('-o', '--outputdir', metavar="DIR", type=str, required=True,
+    parser.add_argument('-o', '--outputdir', metavar="DIR", type=str,
                         help="Write output .zip's to DIR")
+    parser.add_argument('-O', '--outputfile', metavar="FILE", type=str,
+                        help="Write output .zip's to FILE")
+    parser.add_argument('--ffmpeg', dest='generator', action='store_const', const='ffmpeg',
+                        help="Use ffmpeg for thumbnail generation")
+    parser.add_argument('--mplayer', dest='generator', action='store_const', const='mplayer',
+                        help="Use mplayer for thumbnail generation")
+    parser.add_argument('--mpv', dest='generator', action='store_const', const='mpv',
+                        help="Use mpv for thumbnail generation")
     args = parser.parse_args()
 
-    if not os.path.isdir(args.outputdir):
+    if not args.generator:
+        generator = 'mpv'
+    else:
+        generator = args.generator
+
+    if args.outputdir is not None and args.outputfile is not None:
+        raise Exception("can't mix --outputdir and --outputfile")
+
+    if args.outputdir is None and args.outputfile is None:
+        raise Exception("--outputdir or --outputfile required")
+
+    if args.outputdir is not None and not os.path.isdir(args.outputdir):
         raise Exception("{}: not a directory".format(args.outputdir))
 
+    if args.outputfile is not None and len(args.FILE) > 1:
+        raise Exception("can't use --outputfile with multiple input files")
+
     for filename in args.FILE:
-        do_thumbnails(filename, args.outputdir)
+        do_thumbnails(filename, args.outputdir, args.outputfile, generator)
 
 
 if __name__ == "__main__":
