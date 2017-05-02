@@ -36,7 +36,8 @@ def do_thumbnails(filename, outputdir, zipfilename, generator):
         subprocess.check_call(['mpv',
                                '--ao', 'null',
                                '--quiet',
-                               '--vo', 'image:outdir=' + tmpdir,
+                               '--vo', 'image',
+                               '--vo-image-outdir', tmpdir,
                                '--sstep', '60',
                                filename])
     elif generator == 'mplayer':
