@@ -50,6 +50,7 @@ def do_thumbnails(filename, outputdir, zipfilename, generator):
     elif generator == 'ffmpeg':
         subprocess.check_call(['ffmpeg',
                                '-i', filename,
+                               '-an',
                                '-vf', 'fps=1/60',
                                outputpattern])
     else:
