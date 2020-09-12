@@ -18,7 +18,7 @@
 
 #include "grid_thumbnailer.hpp"
 
-#include <boost/format.hpp>
+#include <fmt/format.h>
 #include <gst/gst.h>
 #include <iostream>
 
@@ -79,7 +79,7 @@ GridThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint64 po
   int hour = static_cast<int>(pos / (GST_SECOND * 60 * 60));
   int min  = static_cast<int>(pos / (GST_SECOND * 60)) % 60;
   int sec  = static_cast<int>(pos / GST_SECOND) % 60;
-  std::string time_str = (boost::format("%02d:%02d:%02d") % hour % min % sec).str();
+  std::string time_str = fmt::format("{:02d}:{:02d}:{:02d}", hour, min, sec);
 
   int outline = 1;
   cr->set_source_rgb(0,0,0);

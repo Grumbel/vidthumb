@@ -18,8 +18,8 @@
 
 #include "param_list.hpp"
 
-#include <boost/lexical_cast.hpp>
-#include <boost/tokenizer.hpp>
+#include <string>
+#include <vector>
 
 namespace {
 
@@ -35,6 +35,25 @@ void split_string_at(const std::string& str, char c, std::string* lhs, std::stri
     *lhs = str.substr(0, p);
     *rhs = str.substr(p+1);
   }
+}
+
+std::vector<std::string> string_split(std::string_view text, char delimiter)
+{
+  std::vector<std::string> result;
+
+  std::string::size_type start = 0;
+  for(std::string::size_type i = 0; i != text.size(); ++i)
+  {
+    if (text[i] == delimiter)
+    {
+      result.emplace_back(text.substr(start, i - start));
+      start = i + 1;
+    }
+  }
+
+  result.emplace_back(text.substr(start));
+
+  return result;
 }
 
 } // namespace
@@ -53,15 +72,12 @@ ParamList::ParamList(const std::string& str) :
 void
 ParamList::parse_string(const std::string& str)
 {
-  typedef boost::tokenizer<boost::char_separator<char> > tokenizer;
-  tokenizer tokens(str, boost::char_separator<char>(",", ""));
-
-  for(tokenizer::iterator i = tokens.begin(); i != tokens.end(); ++i)
+  for(auto const& token : string_split(str, ','))
   {
     std::string lhs;
     std::string rhs;
 
-    split_string_at(*i, '=', &lhs, &rhs);
+    split_string_at(token, '=', &lhs, &rhs);
 
     m_params[lhs] = rhs;
   }
@@ -73,7 +89,7 @@ ParamList::get(const std::string& name, int* value)
   auto it = m_params.find(name);
   if (it != m_params.end())
   {
-    *value = boost::lexical_cast<int>(it->second);
+    *value = std::stoi(it->second);
     return true;
   }
   else
@@ -88,7 +104,7 @@ ParamList::get(const std::string& name, double* value)
   auto it = m_params.find(name);
   if (it != m_params.end())
   {
-    *value = boost::lexical_cast<double>(it->second);
+    *value = std::stod(it->second);
     return true;
   }
   else
@@ -103,7 +119,7 @@ ParamList::get(const std::string& name, bool* value)
   auto it = m_params.find(name);
   if (it != m_params.end())
   {
-    *value = boost::lexical_cast<bool>(it->second);
+    *value = static_cast<bool>(std::stoi(it->second));
     return true;
   }
   else

@@ -20,7 +20,6 @@
 
 #include <fmt/format.h>
 #include <filesystem>
-#include <boost/format.hpp>
 #include <logmich/log.hpp>
 
 DirectoryThumbnailer::DirectoryThumbnailer(int num) :

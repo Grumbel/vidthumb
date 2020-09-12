@@ -24,7 +24,7 @@
 #include <vector>
 #include <iostream>
 #include <stdexcept>
-#include <boost/optional.hpp>
+#include <optional>
 
 #include <glib.h>
 #include <gst/gst.h>
@@ -33,8 +33,8 @@ class Thumbnailer;
 
 struct VideoProcessorOptions
 {
-  boost::optional<int> width = {};
-  boost::optional<int> height = {};
+  std::optional<int> width = {};
+  std::optional<int> height = {};
   bool keep_aspect_ratio = true;
 };
 
