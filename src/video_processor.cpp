@@ -18,6 +18,9 @@
 
 #include "video_processor.hpp"
 
+#include <filesystem>
+#include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <algorithm>
 #include <assert.h>
 #include <cairomm/cairomm.h>
@@ -83,8 +86,7 @@ VideoProcessor::get_pipeline_desc() const
   std::ostringstream pipeline_desc;
 
   pipeline_desc <<
-    "filesrc name=mysource "
-    "  ! decodebin "
+    "uridecodebin name=mysource "
     "  ! videoscale "
     "  ! videoconvert ";
 
@@ -189,9 +191,20 @@ VideoProcessor::open(const std::string& filename)
 {
   setup_pipeline();
 
+  auto abspath = std::filesystem::absolute(filename);
+
+  GError* err = nullptr;
+  gchar* uri = g_filename_to_uri(abspath.c_str(), nullptr, &err);
+  if (err != nullptr) {
+    std::string error_msg = err->message;
+    g_error_free(err);
+    throw std::runtime_error(error_msg);
+  }
+
   GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
-  g_object_set(source, "location", filename.c_str(), nullptr);
+  g_object_set(source, "uri", uri, nullptr);
   g_object_unref(source);
+  g_free(uri);
 
   // bring stream into pause state so that the thumbnailing can begin
   gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PAUSED);
