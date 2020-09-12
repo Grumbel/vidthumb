@@ -223,7 +223,7 @@ int main(int argc, char** argv)
     }
 
     gst_init(&argc, &argv);
-    GMainLoop* mainloop = g_main_loop_new(NULL, false);
+    GMainLoop* mainloop = g_main_loop_new(nullptr, false);
     {
       VideoProcessor processor(mainloop, *thumbnailer);
       processor.set_options(opts.vp_opts);

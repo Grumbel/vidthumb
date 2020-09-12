@@ -35,12 +35,12 @@ MediaInfo::MediaInfo(const std::string& filename) :
   m_width(),
   m_height()
 {
-  m_playbin = gst_parse_launch("uridecodebin name=mysource ! fakesink name=mysink", NULL);
+  m_playbin = gst_parse_launch("uridecodebin name=mysource ! fakesink name=mysink", nullptr);
   m_pipeline = GST_PIPELINE(m_playbin);
 
   GstElement* source = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysource");
-  gchar* uri = g_filename_to_uri(filename.c_str(), NULL, NULL);
-  g_object_set(source, "uri", uri, NULL);
+  gchar* uri = g_filename_to_uri(filename.c_str(), nullptr, nullptr);
+  g_object_set(source, "uri", uri, nullptr);
   g_free(uri);
 
   m_fakesink = gst_bin_get_by_name(GST_BIN(m_pipeline), "mysink");
@@ -51,7 +51,7 @@ MediaInfo::MediaInfo(const std::string& filename) :
 
   gst_element_set_state(GST_ELEMENT(m_pipeline), GST_STATE_PAUSED);
 
-  m_mainloop = g_main_loop_new(NULL, FALSE);
+  m_mainloop = g_main_loop_new(nullptr, FALSE);
   g_main_loop_run(m_mainloop);
 }
 
