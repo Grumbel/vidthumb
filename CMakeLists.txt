@@ -49,13 +49,6 @@ target_link_libraries(mediainfo PRIVATE
   PkgConfig::GLIB
   PkgConfig::CAIROMM)
 
-add_executable(gstdiscover src/gstdiscover.c)
-target_link_libraries(gstdiscover PRIVATE
-  PkgConfig::GST
-  PkgConfig::GST_PBUTILS
-  PkgConfig::GLIB
-  PkgConfig::CAIROMM)
-
 if(BUILD_TESTS)
   find_package(GTest REQUIRED)
 
