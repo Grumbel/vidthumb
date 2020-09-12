@@ -21,10 +21,10 @@ find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
 find_package(PkgConfig REQUIRED)
-pkg_search_module(GST REQUIRED gstreamer-1.0)
-pkg_search_module(GST_PBUTILS REQUIRED gstreamer-pbutils-1.0)
-pkg_search_module(GLIB REQUIRED glib-2.0)
-pkg_search_module(CAIROMM REQUIRED cairomm-1.0)
+pkg_search_module(GST REQUIRED gstreamer-1.0 IMPORTED_TARGET)
+pkg_search_module(GST_PBUTILS REQUIRED gstreamer-pbutils-1.0 IMPORTED_TARGET)
+pkg_search_module(GLIB REQUIRED glib-2.0 IMPORTED_TARGET)
+pkg_search_module(CAIROMM REQUIRED cairomm-1.0 IMPORTED_TARGET)
 
 set(WARNINGS 0 CACHE BOOL "Switch on extra warnings")
 
@@ -46,43 +46,30 @@ if(WARNINGS)
     -Wunreachable-code)
 endif()
 
-
 add_compile_options(-std=c++1y)
-include_directories(external/logmich/include/)
 
 add_library(liblogmich external/logmich/src/log.cpp external/logmich/src/logger.cpp)
 set_target_properties(liblogmich PROPERTIES OUTPUT_NAME logmich)
 target_include_directories(liblogmich PUBLIC external/logmich/include/)
-target_link_libraries(liblogmich PUBLIC boost_system boost_filesystem)
+target_link_libraries(liblogmich PUBLIC
+  boost_system
+  boost_filesystem
+  fmt::fmt
+  PkgConfig::GST
+  PkgConfig::GST_PBUTILS
+  PkgConfig::GLIB
+  PkgConfig::CAIROMM)
 
 add_executable(mediainfo src/media_info.cpp)
 target_compile_options(mediainfo PRIVATE ${WARNING_CXX_FLAGS})
-target_include_directories(mediainfo SYSTEM PUBLIC
-  liblogmich
-  ${GST_INCLUDE_DIRS}
-  ${GST_PBUTILS_INCLUDE_DIRS}
-  ${GLIB_INCLUDE_DIRS}
-  ${CAIROMM_INCLUDE_DIRS})
-target_link_LIBRARIES(mediainfo
-  liblogmich
-  fmt::fmt
-  ${GST_LIBRARIES}
-  ${GST_PBUTILS_LIBRARIES}
-  ${GLIB_LIBRARIES}
-  ${CAIROMM_LIBRARIES})
+target_link_libraries(mediainfo liblogmich)
 
 add_executable(gstdiscover src/gstdiscover.c)
-target_include_directories(gstdiscover SYSTEM PUBLIC
-  ${GST_INCLUDE_DIRS}
-  ${GST_PBUTILS_INCLUDE_DIRS}
-  ${GLIB_INCLUDE_DIRS}
-  ${CAIROMM_INCLUDE_DIRS})
-target_link_LIBRARIES(gstdiscover
-  liblogmich
-  ${GST_LIBRARIES}
-  ${GST_PBUTILS_LIBRARIES}
-  ${GLIB_LIBRARIES}
-  ${CAIROMM_LIBRARIES})
+target_link_libraries(gstdiscover PRIVATE
+  PkgConfig::GST
+  PkgConfig::GST_PBUTILS
+  PkgConfig::GLIB
+  PkgConfig::CAIROMM)
 
 if(BUILD_TESTS)
   find_package(GTest REQUIRED)
@@ -103,17 +90,6 @@ add_executable(vidthumb
   src/video_processor.cpp
   src/vidthumb.cpp)
 target_compile_options(vidthumb PRIVATE ${WARNING_CXX_FLAGS})
-target_include_directories(vidthumb SYSTEM PUBLIC
-  liblogmich
-  ${GST_INCLUDE_DIRS}
-  ${GST_PBUTILS_INCLUDE_DIRS}
-  ${GLIB_INCLUDE_DIRS}
-  ${CAIROMM_INCLUDE_DIRS})
-target_link_libraries(vidthumb
-  liblogmich
-  ${GST_LIBRARIES}
-  ${GST_PBUTILS_LIBRARIES}
-  ${GLIB_LIBRARIES}
-  ${CAIROMM_LIBRARIES})
+target_link_libraries(vidthumb PRIVATE liblogmich)
 
 # EOF #
