@@ -17,7 +17,11 @@
 cmake_minimum_required(VERSION 3.0)
 project(vidthumb)
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/)
+
 option(BUILD_TESTS "Build test cases" OFF)
+
+include(MaximumWarnings)
 
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
@@ -27,26 +31,6 @@ pkg_search_module(GST REQUIRED gstreamer-1.0 IMPORTED_TARGET)
 pkg_search_module(GST_PBUTILS REQUIRED gstreamer-pbutils-1.0 IMPORTED_TARGET)
 pkg_search_module(GLIB REQUIRED glib-2.0 IMPORTED_TARGET)
 pkg_search_module(CAIROMM REQUIRED cairomm-1.0 IMPORTED_TARGET)
-
-set(WARNINGS 0 CACHE BOOL "Switch on extra warnings")
-
-if(WARNINGS)
-  set(WARNING_CXX_FLAGS
-    -pedantic
-    -Wall
-    -Wextra
-    -Wno-c++0x-compat
-    -Wnon-virtual-dtor
-    -Weffc++
-    -Wconversion
-    -Werror
-    -Wshadow
-    -Wcast-qual
-    -Winit-self # only works with >= -O1
-    -Wno-unused-parameter
-    -Wfloat-equal
-    -Wunreachable-code)
-endif()
 
 add_compile_options(-std=c++1y)
 
@@ -63,7 +47,7 @@ target_link_libraries(liblogmich PUBLIC
   PkgConfig::CAIROMM)
 
 add_executable(mediainfo src/media_info.cpp)
-target_compile_options(mediainfo PRIVATE ${WARNING_CXX_FLAGS})
+target_compile_options(mediainfo PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(mediainfo liblogmich)
 
 add_executable(gstdiscover src/gstdiscover.c)
@@ -80,7 +64,7 @@ if(BUILD_TESTS)
     tests/*_test.cpp)
 
   add_executable(test_vidthumb ${TEST_VIDTHUMB_SOURCES_CXX})
-  target_compile_options(test_vidthumb PRIVATE ${WARNING_CXX_FLAGS})
+  target_compile_options(test_vidthumb PRIVATE ${WARNINGS_CXX_FLAGS})
   target_link_libraries(test_vidthumb GTest::GTest GTest::Main)
 endif()
 
@@ -91,7 +75,7 @@ add_executable(vidthumb
   src/param_list.cpp
   src/video_processor.cpp
   src/vidthumb.cpp)
-target_compile_options(vidthumb PRIVATE ${WARNING_CXX_FLAGS})
+target_compile_options(vidthumb PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(vidthumb PRIVATE liblogmich)
 
 # EOF #
