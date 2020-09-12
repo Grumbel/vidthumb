@@ -19,6 +19,7 @@ project(vidthumb)
 
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
+find_package(fmt REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GST REQUIRED gstreamer-1.0)
 pkg_search_module(GST_PBUTILS REQUIRED gstreamer-pbutils-1.0)
@@ -64,6 +65,7 @@ target_include_directories(mediainfo SYSTEM PUBLIC
   ${CAIROMM_INCLUDE_DIRS})
 target_link_LIBRARIES(mediainfo
   liblogmich
+  fmt::fmt
   ${GST_LIBRARIES}
   ${GST_PBUTILS_LIBRARIES}
   ${GLIB_LIBRARIES}
