@@ -231,15 +231,15 @@ int main(int argc, char** argv)
     {
       log_info("----------------------------------------------------------------------------------");
       MediaInfo video(argv[i]);
-      log_info("Duration: %s - %s:%s:%s",
+      log_info("Duration: {} - {}:{}:{}",
                video.get_duration(),
                static_cast<int>(video.get_duration() / (GST_SECOND * 60 * 60)),
                static_cast<int>(video.get_duration() / (GST_SECOND * 60)) % 60,
                static_cast<int>(video.get_duration() / GST_SECOND) % 60);
-      log_info("Frames:   %s", video.get_frames());
-      log_info("Bytes:    %s", video.get_bytes());
-      log_info("Buffers:  %s", video.get_buffers());
-      log_info("Size:     %dx%d", video.get_width(), video.get_height());
+      log_info("Frames:   {}", video.get_frames());
+      log_info("Bytes:    {}", video.get_bytes());
+      log_info("Buffers:  {}", video.get_buffers());
+      log_info("Size:     {}x{}", video.get_width(), video.get_height());
     }
     catch(const std::exception& err)
     {

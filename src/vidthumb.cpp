@@ -188,8 +188,8 @@ int main(int argc, char** argv)
     Options opts;
     opts.parse_args(argc, argv);
 
-    log_info("input:  %s", opts.input_filename);
-    log_info("output: %s", opts.output_filename);
+    log_info("input:  {}", opts.input_filename);
+    log_info("output: {}", opts.output_filename);
 
     std::unique_ptr<Thumbnailer> thumbnailer;
     switch(opts.mode)

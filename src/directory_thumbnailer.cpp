@@ -61,7 +61,7 @@ DirectoryThumbnailer::save(const std::string& directory_str)
   {
     boost::filesystem::path filename = directory / (boost::format("thumb%020d.png") % thumb.pos).str();
 
-    log_info("writing thumbnail to %s", filename);
+    log_info("writing thumbnail to {}", filename);
     thumb.image->write_to_png(filename.string());
   }
 }

@@ -114,7 +114,7 @@ void
 VideoProcessor::setup_pipeline()
 {
   auto pipeline_desc = get_pipeline_desc();
-  log_info("Using pipeline: %s", pipeline_desc);
+  log_info("Using pipeline: {}", pipeline_desc);
   GError* error = nullptr;
   m_pipeline = GST_PIPELINE(gst_parse_launch(pipeline_desc.c_str(), &error));
   if (error)
@@ -261,7 +261,7 @@ VideoProcessor::get_position()
 void
 VideoProcessor::seek_step()
 {
-  log_info("!!!!!!!!!!!!!!!! seek_step: %s", m_thumbnailer_pos.size());
+  log_info("!!!!!!!!!!!!!!!! seek_step: {}", m_thumbnailer_pos.size());
 
   if (!m_thumbnailer_pos.empty())
   {
@@ -275,7 +275,7 @@ VideoProcessor::seek_step()
       seek_flags = static_cast<GstSeekFlags>(GST_SEEK_FLAG_FLUSH | GST_SEEK_FLAG_KEY_UNIT | GST_SEEK_FLAG_SNAP_NEAREST);  // fast
     }
 
-    log_info("--> REQUEST SEEK: %s", m_thumbnailer_pos.back());
+    log_info("--> REQUEST SEEK: {}", m_thumbnailer_pos.back());
     if (!gst_element_seek_simple(GST_ELEMENT(m_pipeline),
                                  GST_FORMAT_TIME,
                                  seek_flags,
@@ -351,7 +351,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
     gchar* debug = nullptr;
     gst_message_parse_error(msg, &gerror, &debug);
 
-    log_info("Error: %s: %s", GST_MESSAGE_SRC_NAME(msg), gerror->message);
+    log_info("Error: {}: {}", GST_MESSAGE_SRC_NAME(msg), gerror->message);
 
     queue_shutdown();
 
@@ -363,7 +363,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
     GstState oldstate, newstate, pending;
     gst_message_parse_state_changed(msg, &oldstate, &newstate, &pending);
 
-    log_debug("GST_MESSAGE_STATE_CHANGED: %s old: %s new: %s",
+    log_debug("GST_MESSAGE_STATE_CHANGED: {} old: {} new: {}",
               GST_MESSAGE_SRC_NAME(msg),
               to_string(oldstate),
               to_string(newstate));
@@ -397,7 +397,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
                               const gchar* tag,
                               gpointer user_data)
                            {
-                             log_info("  tag: %s", tag);
+                             log_info("  tag: {}", tag);
                            },
                            this);
 
@@ -501,7 +501,7 @@ VideoProcessor::on_bus_message(GstMessage* msg)
   }
   else
   {
-    log_info("unknown message: %s", GST_MESSAGE_TYPE(msg));
+    log_info("unknown message: {}", GST_MESSAGE_TYPE(msg));
     queue_shutdown();
   }
 }
@@ -534,10 +534,10 @@ VideoProcessor::on_timeout()
 
   double t_d = static_cast<double>(t) / G_USEC_PER_SEC;
 
-  log_info("TIMEOUT: %s %s", t_d, m_timeout);
+  log_info("TIMEOUT: {} {}", t_d, m_timeout);
   if (t_d > m_timeout/1000.0)
   {
-    log_info("--------- timeout ----------------: %s", t_d);
+    log_info("--------- timeout ----------------: {}", t_d);
     queue_shutdown();
   }
 
