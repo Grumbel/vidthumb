@@ -18,8 +18,8 @@
 
 #include "directory_thumbnailer.hpp"
 
-#include <boost/filesystem/path.hpp>
-#include <boost/filesystem/operations.hpp>
+#include <fmt/format.h>
+#include <filesystem>
 #include <boost/format.hpp>
 #include <logmich/log.hpp>
 
@@ -50,16 +50,16 @@ DirectoryThumbnailer::receive_frame(Cairo::RefPtr<Cairo::ImageSurface> img, gint
 void
 DirectoryThumbnailer::save(const std::string& directory_str)
 {
-  boost::filesystem::path directory(directory_str);
+  std::filesystem::path directory(directory_str);
 
-  if (!boost::filesystem::is_directory(directory))
+  if (!std::filesystem::is_directory(directory))
   {
-    boost::filesystem::create_directory(directory);
+    std::filesystem::create_directory(directory);
   }
 
   for(auto& thumb : m_thumbnails)
   {
-    boost::filesystem::path filename = directory / (boost::format("thumb%020d.png") % thumb.pos).str();
+    std::filesystem::path filename = directory / fmt::format("thumb{:020d}.png", thumb.pos);
 
     log_info("writing thumbnail to {}", filename);
     thumb.image->write_to_png(filename.string());

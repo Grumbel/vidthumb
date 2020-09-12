@@ -23,7 +23,6 @@ option(BUILD_TESTS "Build test cases" OFF)
 
 include(MaximumWarnings)
 
-find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -40,8 +39,6 @@ add_library(liblogmich external/logmich/src/log.cpp external/logmich/src/logger.
 set_target_properties(liblogmich PROPERTIES OUTPUT_NAME logmich)
 target_include_directories(liblogmich PUBLIC external/logmich/include/)
 target_link_libraries(liblogmich PUBLIC
-  boost_system
-  boost_filesystem
   fmt::fmt
   PkgConfig::GST
   PkgConfig::GST_PBUTILS
