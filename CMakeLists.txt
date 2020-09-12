@@ -32,7 +32,9 @@ pkg_search_module(GST_PBUTILS REQUIRED gstreamer-pbutils-1.0 IMPORTED_TARGET)
 pkg_search_module(GLIB REQUIRED glib-2.0 IMPORTED_TARGET)
 pkg_search_module(CAIROMM REQUIRED cairomm-1.0 IMPORTED_TARGET)
 
-add_compile_options(-std=c++1y)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(liblogmich external/logmich/src/log.cpp external/logmich/src/logger.cpp)
 set_target_properties(liblogmich PROPERTIES OUTPUT_NAME logmich)
