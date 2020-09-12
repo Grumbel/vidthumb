@@ -17,6 +17,8 @@
 cmake_minimum_required(VERSION 3.0)
 project(vidthumb)
 
+option(BUILD_TESTS "Build test cases" OFF)
+
 find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 find_package(fmt REQUIRED)
