@@ -21,6 +21,7 @@ list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/)
 
 option(BUILD_TESTS "Build test cases" OFF)
 
+include(GNUInstallDirs)
 include(MaximumWarnings)
 
 find_package(Threads REQUIRED)
@@ -77,5 +78,14 @@ target_link_libraries(vidthumb PRIVATE
   PkgConfig::GST
   PkgConfig::GLIB
   PkgConfig::CAIROMM)
+
+install(TARGETS vidthumb mediainfo
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
+
+install(FILES
+  ${CMAKE_CURRENT_SOURCE_DIR}/vidthumbzip.py
+  RENAME vidthumbzip
+  PERMISSIONS OWNER_EXECUTE OWNER_READ OWNER_WRITE GROUP_READ GROUP_EXECUTE WORLD_READ WORLD_EXECUTE
+  DESTINATION "bin/")
 
 # EOF #
