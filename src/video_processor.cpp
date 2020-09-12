@@ -174,7 +174,7 @@ VideoProcessor::set_timeout(int timeout)
 
   if (m_timeout != -1)
   {
-    g_get_current_time(&m_last_screenshot);
+    m_last_screenshot = g_get_real_time();
     log_info("------------------------------------ install time out " );
     auto callback = [](gpointer user_data) -> gboolean
       {
@@ -328,7 +328,7 @@ VideoProcessor::on_preroll_handoff(GstElement* fakesink, GstBuffer* buffer, GstP
 {
   if (m_running)
   {
-    g_get_current_time(&m_last_screenshot);
+    m_last_screenshot = g_get_real_time();
     auto img = buffer2cairo(buffer, pad);
     m_thumbnailer.receive_frame(img, get_position());
 
@@ -525,40 +525,19 @@ VideoProcessor::shutdown()
   g_main_loop_quit(m_mainloop);
 }
 
-static double as_double(const GTimeVal& t)
-{
-  return double(t.tv_sec) + double(t.tv_usec) / double(G_USEC_PER_SEC);
-}
-
-static void subtract(GTimeVal& lhs, const GTimeVal& rhs)
-{
-  g_return_if_fail(lhs.tv_usec >= 0 && lhs.tv_usec < G_USEC_PER_SEC);
-  g_return_if_fail(rhs.tv_usec >= 0 && rhs.tv_usec < G_USEC_PER_SEC);
-
-  lhs.tv_usec -= rhs.tv_usec;
-
-  if(lhs.tv_usec < 0)
-  {
-    lhs.tv_usec += G_USEC_PER_SEC;
-    --lhs.tv_sec;
-  }
-
-  lhs.tv_sec -= rhs.tv_sec;
-}
-
 bool
 VideoProcessor::on_timeout()
 {
-  GTimeVal t;
+  guint64 t = g_get_real_time();
 
-  g_get_current_time(&t);
+  t = t - m_last_screenshot;
 
-  subtract(t, m_last_screenshot);
+  double t_d = static_cast<double>(t) / G_USEC_PER_SEC;
 
-  log_info("TIMEOUT: %s %s", as_double(t), m_timeout);
-  if (as_double(t) > m_timeout/1000.0)
+  log_info("TIMEOUT: %s %s", t_d, m_timeout);
+  if (t_d > m_timeout/1000.0)
   {
-    log_info("--------- timeout ----------------: %s", as_double(t));
+    log_info("--------- timeout ----------------: %s", t_d);
     queue_shutdown();
   }
 

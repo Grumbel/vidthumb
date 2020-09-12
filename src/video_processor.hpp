@@ -54,7 +54,7 @@ private:
   guint m_timeout_id;
   int  m_timeout;
   bool m_accurate;
-  GTimeVal m_last_screenshot;
+  guint64 m_last_screenshot;
 
   VideoProcessorOptions m_opts;
 
