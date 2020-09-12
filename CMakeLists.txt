@@ -50,6 +50,8 @@ target_link_libraries(mediainfo PRIVATE
   PkgConfig::CAIROMM)
 
 if(BUILD_TESTS)
+  enable_testing()
+
   find_package(GTest REQUIRED)
 
   file(GLOB TEST_VIDTHUMB_SOURCES_CXX RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
@@ -58,6 +60,10 @@ if(BUILD_TESTS)
   add_executable(test_vidthumb ${TEST_VIDTHUMB_SOURCES_CXX})
   target_compile_options(test_vidthumb PRIVATE ${WARNINGS_CXX_FLAGS})
   target_link_libraries(test_vidthumb GTest::GTest GTest::Main)
+
+  add_test(NAME test_vidthumb
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND test_vidthumb)
 endif()
 
 add_executable(vidthumb
