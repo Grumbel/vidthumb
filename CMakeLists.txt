@@ -26,7 +26,6 @@ include(MaximumWarnings)
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GST REQUIRED gstreamer-1.0 IMPORTED_TARGET)
-pkg_search_module(GST_PBUTILS REQUIRED gstreamer-pbutils-1.0 IMPORTED_TARGET)
 pkg_search_module(GLIB REQUIRED glib-2.0 IMPORTED_TARGET)
 pkg_search_module(CAIROMM REQUIRED cairomm-1.0 IMPORTED_TARGET)
 
@@ -45,7 +44,6 @@ target_compile_options(mediainfo PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(mediainfo PRIVATE
   logmich
   PkgConfig::GST
-  PkgConfig::GST_PBUTILS
   PkgConfig::GLIB
   PkgConfig::CAIROMM)
 
@@ -77,7 +75,6 @@ target_compile_options(vidthumb PRIVATE ${WARNINGS_CXX_FLAGS})
 target_link_libraries(vidthumb PRIVATE
   logmich
   PkgConfig::GST
-  PkgConfig::GST_PBUTILS
   PkgConfig::GLIB
   PkgConfig::CAIROMM)
 
