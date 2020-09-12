@@ -84,27 +84,16 @@ target_link_LIBRARIES(gstdiscover
   ${GLIB_LIBRARIES}
   ${CAIROMM_LIBRARIES})
 
-add_library(gtest STATIC ${CMAKE_CURRENT_SOURCE_DIR}/external/googletest/src/gtest-all.cc)
-target_include_directories(gtest SYSTEM PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/googletest/include/
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/googletest/)
+if(BUILD_TESTS)
+  find_package(GTest REQUIRED)
 
-# for filename in Glob("uitests/*_test.cpp", strings=True):
-#     uitest_prog = env.Program(filename[:-4], filename)
-#     Default(uitest_prog)
+  file(GLOB TEST_VIDTHUMB_SOURCES_CXX RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
+    tests/*_test.cpp)
 
-add_library(gtest_main STATIC ${CMAKE_CURRENT_SOURCE_DIR}/external/googletest/src/gtest_main.cc)
-target_include_directories(gtest_main SYSTEM PUBLIC
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/googletest/include/
-  ${CMAKE_CURRENT_SOURCE_DIR}/external/googletest/)
-target_link_libraries(gtest INTERFACE ${CMAKE_THREAD_LIBS_INIT})
-
-file(GLOB TEST_VIDTHUMB_SOURCES_CXX RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}
-  tests/*_test.cpp)
-
-add_executable(test_vidthumb ${TEST_VIDTHUMB_SOURCES_CXX})
-target_compile_options(test_vidthumb PRIVATE ${WARNING_CXX_FLAGS})
-target_link_libraries(test_vidthumb gtest gtest_main)
+  add_executable(test_vidthumb ${TEST_VIDTHUMB_SOURCES_CXX})
+  target_compile_options(test_vidthumb PRIVATE ${WARNING_CXX_FLAGS})
+  target_link_libraries(test_vidthumb GTest::GTest GTest::Main)
+endif()
 
 add_executable(vidthumb
   src/fourd_thumbnailer.cpp

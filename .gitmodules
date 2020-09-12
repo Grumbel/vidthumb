@@ -1,9 +1,6 @@
 [submodule "external/logmich"]
 	path = external/logmich
 	url = https://github.com/Grumbel/logmich.git
-[submodule "external/googletest"]
-	path = external/googletest
-	url = https://chromium.googlesource.com/external/googletest
 [submodule "external/cmake-modules"]
 	path = external/cmake-modules
 	url = https://gitlab.com/grumbel/cmake-modules.git
