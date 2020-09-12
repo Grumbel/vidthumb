@@ -24,7 +24,6 @@ option(BUILD_TESTS "Build test cases" OFF)
 include(MaximumWarnings)
 
 find_package(Threads REQUIRED)
-find_package(fmt REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_search_module(GST REQUIRED gstreamer-1.0 IMPORTED_TARGET)
 pkg_search_module(GST_PBUTILS REQUIRED gstreamer-pbutils-1.0 IMPORTED_TARGET)
@@ -35,19 +34,20 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_library(liblogmich external/logmich/src/log.cpp external/logmich/src/logger.cpp)
-set_target_properties(liblogmich PROPERTIES OUTPUT_NAME logmich)
-target_include_directories(liblogmich PUBLIC external/logmich/include/)
-target_link_libraries(liblogmich PUBLIC
-  fmt::fmt
+function(build_dependencies)
+  set(BUILD_TESTS OFF)
+  add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
+endfunction()
+build_dependencies()
+
+add_executable(mediainfo src/media_info.cpp)
+target_compile_options(mediainfo PRIVATE ${WARNINGS_CXX_FLAGS})
+target_link_libraries(mediainfo PRIVATE
+  logmich
   PkgConfig::GST
   PkgConfig::GST_PBUTILS
   PkgConfig::GLIB
   PkgConfig::CAIROMM)
-
-add_executable(mediainfo src/media_info.cpp)
-target_compile_options(mediainfo PRIVATE ${WARNINGS_CXX_FLAGS})
-target_link_libraries(mediainfo liblogmich)
 
 add_executable(gstdiscover src/gstdiscover.c)
 target_link_libraries(gstdiscover PRIVATE
@@ -75,6 +75,11 @@ add_executable(vidthumb
   src/video_processor.cpp
   src/vidthumb.cpp)
 target_compile_options(vidthumb PRIVATE ${WARNINGS_CXX_FLAGS})
-target_link_libraries(vidthumb PRIVATE liblogmich)
+target_link_libraries(vidthumb PRIVATE
+  logmich
+  PkgConfig::GST
+  PkgConfig::GST_PBUTILS
+  PkgConfig::GLIB
+  PkgConfig::CAIROMM)
 
 # EOF #

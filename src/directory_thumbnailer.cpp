@@ -19,6 +19,7 @@
 #include "directory_thumbnailer.hpp"
 
 #include <fmt/format.h>
+#include <fmt/ostream.h>
 #include <filesystem>
 #include <logmich/log.hpp>
 
