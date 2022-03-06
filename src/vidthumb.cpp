@@ -99,12 +99,12 @@ Options::parse_args(int argc, char** argv)
       else if (strcmp(argv[i], "-d") == 0 ||
                strcmp(argv[i], "--debug") == 0)
       {
-        logmich::incr_log_level(logmich::kDebug);
+        logmich::incr_log_level(logmich::LogLevel::DEBUG);
       }
       else if (strcmp(argv[i], "-v") == 0 ||
                strcmp(argv[i], "--verbose") == 0)
       {
-        logmich::incr_log_level(logmich::kInfo);
+        logmich::incr_log_level(logmich::LogLevel::INFO);
       }
       else if (strcmp(argv[i], "-o") == 0 ||
                strcmp(argv[i], "--output") == 0)
