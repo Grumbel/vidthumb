@@ -4,9 +4,19 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-21.11";
     flake-utils.url = "github:numtide/flake-utils";
+
+    tinycmmc.url = "gitlab:grumbel/cmake-modules";
+    tinycmmc.inputs.nixpkgs.follows = "nixpkgs";
+    tinycmmc.inputs.flake-utils.follows = "flake-utils";
+
+    logmich.url = "gitlab:logmich/logmich";
+    logmich.inputs.nixpkgs.follows = "nixpkgs";
+    logmich.inputs.flake-utils.follows = "flake-utils";
+    logmich.inputs.tinycmmc.follows = "tinycmmc";
   };
 
-  outputs = { self, nixpkgs, flake-utils }:
+  outputs = { self, nixpkgs, flake-utils,
+              tinycmmc, logmich }:
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = nixpkgs.legacyPackages.${system};
@@ -21,6 +31,9 @@
               pkgs.pkg-config
             ];
             buildInputs = [
+              tinycmmc.defaultPackage.${system}
+              logmich.defaultPackage.${system}
+
               pkgs.cairomm
               pkgs.fmt
               pkgs.gst_all_1.gstreamermm
