@@ -17,7 +17,10 @@
 cmake_minimum_required(VERSION 3.0)
 project(vidthumb)
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/)
+set(TINYCMMC_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/modules/")
+find_package(tinycmmc CONFIG)
+message(STATUS "tinycmmc module path: ${TINYCMMC_MODULE_PATH}")
+list(APPEND CMAKE_MODULE_PATH ${TINYCMMC_MODULE_PATH})
 
 option(BUILD_TESTS "Build test cases" OFF)
 
@@ -36,7 +39,10 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 function(build_dependencies)
   set(BUILD_TESTS OFF)
-  add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
+  find_package(logmich)
+  if(NOT TARGET logmich)
+    add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
+  endif()
 endfunction()
 build_dependencies()
 
