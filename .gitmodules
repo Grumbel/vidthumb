@@ -1,6 +1,6 @@
 [submodule "external/logmich"]
 	path = external/logmich
-	url = https://gitlab.com/logmich/logmich.git
-[submodule "external/cmake-modules"]
-	path = external/cmake-modules
-	url = https://gitlab.com/grumbel/cmake-modules.git
+	url = https://github.com/logmich/logmich.git
+[submodule "external/tinycmmc"]
+	path = external/tinycmmc
+	url = https://github.com/grumbel/tinycmmc.git

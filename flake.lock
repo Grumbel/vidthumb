@@ -2,16 +2,32 @@
   "nodes": {
     "flake-utils": {
       "locked": {
-        "lastModified": 1644229661,
-        "narHash": "sha256-1YdnJAsNy69bpcjuoKdOYQX0YxZBiCYZo4Twxerqv7k=",
+        "lastModified": 1653893745,
+        "narHash": "sha256-0jntwV3Z8//YwuOjzhV2sgJJPt+HY6KhU7VZUL0fKZQ=",
         "owner": "numtide",
         "repo": "flake-utils",
-        "rev": "3cecb5b042f7f209c56ffd8371b2711a290ec797",
+        "rev": "1ed9fb1935d260de5fe1c2f7ee0ebaae17ed2fa1",
         "type": "github"
       },
       "original": {
         "owner": "numtide",
         "repo": "flake-utils",
+        "type": "github"
+      }
+    },
+    "gstreamer-fix": {
+      "locked": {
+        "lastModified": 1651597463,
+        "narHash": "sha256-GnK8qUGNRdAwaNHS3OuAi6VrgicsPU9gSVzoglx8MaM=",
+        "owner": "milahu",
+        "repo": "nixpkgs",
+        "rev": "c9cb28e97cfe0320459f0364c6f3484cb69a7abb",
+        "type": "github"
+      },
+      "original": {
+        "owner": "milahu",
+        "ref": "patch-22",
+        "repo": "nixpkgs",
         "type": "github"
       }
     },
@@ -28,31 +44,31 @@
         ]
       },
       "locked": {
-        "lastModified": 1646131997,
-        "narHash": "sha256-R3eLet5vCDlX8WoBJhkZJcjJVxWdkPTxjaU0TbSJuzU=",
+        "lastModified": 1653991001,
+        "narHash": "sha256-JWlI7nJykeXPkeq4zdUOvcScMnp386UW3tyRQgkxMtk=",
         "owner": "logmich",
         "repo": "logmich",
-        "rev": "23cff5642f96a8dd095e2faab1e7821f542e315e",
-        "type": "gitlab"
+        "rev": "866b33191bc9378191519b0342ebb1da66142ac2",
+        "type": "github"
       },
       "original": {
         "owner": "logmich",
         "repo": "logmich",
-        "type": "gitlab"
+        "type": "github"
       }
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1646406548,
-        "narHash": "sha256-xp+3f76ycZXNf9pG65Ef9KfDl1fas2UQu/cBe/pLd+c=",
+        "lastModified": 1655096306,
+        "narHash": "sha256-3B3zBaQVLL956deZgmucouvkZroObQ4JKHzbIfFS9/c=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "47cd6702934434dd02bc53a67dbce3e5493e33a2",
+        "rev": "a119e218ad27bea32057a3463e3694a61c9e3802",
         "type": "github"
       },
       "original": {
         "owner": "NixOS",
-        "ref": "nixos-21.11",
+        "ref": "nixos-22.05",
         "repo": "nixpkgs",
         "type": "github"
       }
@@ -60,6 +76,7 @@
     "root": {
       "inputs": {
         "flake-utils": "flake-utils",
+        "gstreamer-fix": "gstreamer-fix",
         "logmich": "logmich",
         "nixpkgs": "nixpkgs",
         "tinycmmc": "tinycmmc"
@@ -75,17 +92,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1645974294,
-        "narHash": "sha256-Comma4p9L263ZMfhBpKKTuBVCq4Yd+hQrN33sGjwPAk=",
+        "lastModified": 1655130564,
+        "narHash": "sha256-bifHHWrPsUhCe5uh5oQzdd95tdpkpySz+o+PvXBXWGE=",
         "owner": "grumbel",
-        "repo": "cmake-modules",
-        "rev": "297d1433067637903334b4c194eef5958e3f546f",
-        "type": "gitlab"
+        "repo": "tinycmmc",
+        "rev": "47da91f484162d6efe9d9a6ee9e77afdbf55dee9",
+        "type": "github"
       },
       "original": {
         "owner": "grumbel",
-        "repo": "cmake-modules",
-        "type": "gitlab"
+        "repo": "tinycmmc",
+        "type": "github"
       }
     }
   },
