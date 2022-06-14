@@ -17,39 +17,26 @@
 cmake_minimum_required(VERSION 3.0)
 project(vidthumb)
 
-set(TINYCMMC_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/external/cmake-modules/modules/")
-find_package(tinycmmc CONFIG)
-message(STATUS "tinycmmc module path: ${TINYCMMC_MODULE_PATH}")
-list(APPEND CMAKE_MODULE_PATH ${TINYCMMC_MODULE_PATH})
-
-option(BUILD_TESTS "Build test cases" OFF)
-
-include(GNUInstallDirs)
-include(MaximumWarnings)
+include(mk/cmake/TinyCMMC.cmake)
 
 find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
+find_package(fmt REQUIRED)
 pkg_search_module(GST REQUIRED gstreamer-1.0 IMPORTED_TARGET)
 pkg_search_module(GLIB REQUIRED glib-2.0 IMPORTED_TARGET)
 pkg_search_module(CAIROMM REQUIRED cairomm-1.0 IMPORTED_TARGET)
 
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 function(build_dependencies)
   set(BUILD_TESTS OFF)
-  find_package(logmich)
-  if(NOT TARGET logmich)
-    add_subdirectory(external/logmich/ EXCLUDE_FROM_ALL)
-  endif()
+  tinycmmc_find_dependency(logmich)
 endfunction()
 build_dependencies()
 
 add_executable(mediainfo src/media_info.cpp)
-target_compile_options(mediainfo PRIVATE ${WARNINGS_CXX_FLAGS})
+target_compile_options(mediainfo PRIVATE ${TINYCMMC_WARNINGS_CXX_FLAGS})
 target_link_libraries(mediainfo PRIVATE
-  logmich
+  logmich::logmich
+  fmt::fmt
   PkgConfig::GST
   PkgConfig::GLIB
   PkgConfig::CAIROMM)
@@ -63,7 +50,7 @@ if(BUILD_TESTS)
     tests/*_test.cpp)
 
   add_executable(test_vidthumb ${TEST_VIDTHUMB_SOURCES_CXX})
-  target_compile_options(test_vidthumb PRIVATE ${WARNINGS_CXX_FLAGS})
+  target_compile_options(test_vidthumb PRIVATE ${TINYCMMC_WARNINGS_CXX_FLAGS})
   target_link_libraries(test_vidthumb GTest::GTest GTest::Main)
 
   add_test(NAME test_vidthumb
@@ -78,9 +65,10 @@ add_executable(vidthumb
   src/param_list.cpp
   src/video_processor.cpp
   src/vidthumb.cpp)
-target_compile_options(vidthumb PRIVATE ${WARNINGS_CXX_FLAGS})
+target_compile_options(vidthumb PRIVATE ${TINYCMMC_WARNINGS_CXX_FLAGS})
 target_link_libraries(vidthumb PRIVATE
-  logmich
+  logmich::logmich
+  fmt::fmt
   PkgConfig::GST
   PkgConfig::GLIB
   PkgConfig::CAIROMM)
