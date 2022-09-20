@@ -23,27 +23,32 @@
       let
         pkgs = nixpkgs.legacyPackages.${system};
         gstreamer-fix-pkgs = gstreamer-fix.legacyPackages.${system};
-      in rec {
-        packages = flake-utils.lib.flattenTree {
+      in {
+        packages = rec {
+          default = vidthumb;
+
           vidthumb = pkgs.stdenv.mkDerivation {
             pname = "vidthumb";
             version = "0.0.0";
+
             src = nixpkgs.lib.cleanSource ./.;
+
             nativeBuildInputs = [
               pkgs.cmake
               pkgs.pkg-config
             ];
+
             buildInputs = [
-              tinycmmc.defaultPackage.${system}
-              logmich.defaultPackage.${system}
+              tinycmmc.packages.${system}.default
+              logmich.packages.${system}.default
 
               pkgs.cairomm
-              pkgs.fmt
+              pkgs.fmt_8
               # pkgs.gst_all_1.gstreamermm
               gstreamer-fix-pkgs.gst_all_1.gstreamermm
             ];
           };
         };
-        defaultPackage = packages.vidthumb;
-      });
+      }
+    );
 }
