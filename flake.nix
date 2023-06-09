@@ -29,6 +29,8 @@
 
             src = ./.;
 
+            doCheck = true;
+
             nativeBuildInputs = with pkgs; [
               cmake
               pkg-config
@@ -41,6 +43,15 @@
             ] ++ [
               tinycmmc.packages.${system}.default
               logmich.packages.${system}.default
+            ];
+
+            propagatedBuildInputs = with pkgs; [
+              gst_all_1.gst-plugins-good
+              gst_all_1.gst-plugins-bad
+            ];
+
+            checkInputs = with pkgs; [
+              gtest
             ];
           };
         };

@@ -24,7 +24,10 @@ find_package(PkgConfig REQUIRED)
 find_package(fmt REQUIRED)
 pkg_search_module(GST REQUIRED gstreamer-1.0 IMPORTED_TARGET)
 pkg_search_module(GLIB REQUIRED glib-2.0 IMPORTED_TARGET)
+
+pkg_search_module(GLIBMM REQUIRED glibmm-2.4 IMPORTED_TARGET)
 pkg_search_module(CAIROMM REQUIRED cairomm-1.0 IMPORTED_TARGET)
+pkg_search_module(GSTREAMERMM REQUIRED gstreamermm-1.0 IMPORTED_TARGET)
 
 function(build_dependencies)
   set(BUILD_TESTS OFF)
@@ -37,8 +40,8 @@ target_compile_options(mediainfo PRIVATE ${TINYCMMC_WARNINGS_CXX_FLAGS})
 target_link_libraries(mediainfo PRIVATE
   logmich::logmich
   fmt::fmt
-  PkgConfig::GST
-  PkgConfig::GLIB
+  PkgConfig::GSTREAMERMM
+  PkgConfig::GLIBMM
   PkgConfig::CAIROMM)
 
 if(BUILD_TESTS)
