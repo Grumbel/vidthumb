@@ -26,8 +26,8 @@
 #include <stdexcept>
 #include <optional>
 
-#include <glib.h>
-#include <gst/gst.h>
+#include <glibmm.h>
+#include <gstreamermm.h>
 
 class Thumbnailer;
 
@@ -40,26 +40,8 @@ struct VideoProcessorOptions
 
 class VideoProcessor final
 {
-private:
-  GMainLoop* m_mainloop;
-  Thumbnailer& m_thumbnailer;
-
-  GstPipeline* m_pipeline;
-  GstElement* m_fakesink;
-
-  std::vector<gint64> m_thumbnailer_pos;
-
-  bool m_done;
-  bool m_running;
-  guint m_timeout_id;
-  int  m_timeout;
-  bool m_accurate;
-  guint64 m_last_screenshot;
-
-  VideoProcessorOptions m_opts;
-
 public:
-  VideoProcessor(GMainLoop* mainloop,
+  VideoProcessor(Glib::RefPtr<Glib::MainLoop> mainloop,
                  Thumbnailer& thumbnailer);
   ~VideoProcessor();
 
@@ -74,15 +56,32 @@ public:
   gint64 get_position();
 
   void seek_step();
-  void on_bus_message(GstMessage* msg);
-  void on_preroll_handoff(GstElement *fakesink, GstBuffer *buffer, GstPad *pad);
+  bool on_bus_message(Glib::RefPtr<Gst::Bus> const& bus,
+                      Glib::RefPtr<Gst::Message> const& message);
+  void on_preroll_handoff(Glib::RefPtr<Gst::Buffer> const& buffer,
+                          Glib::RefPtr<Gst::Pad> const& pad);
   void shutdown();
   void queue_shutdown();
 
   bool on_timeout();
 
 private:
+  Glib::RefPtr<Glib::MainLoop> m_mainloop;
+  Thumbnailer& m_thumbnailer;
 
+  Glib::RefPtr<Gst::Pipeline> m_pipeline;
+  Glib::RefPtr<Gst::FakeSink> m_fakesink;
+
+  std::vector<gint64> m_thumbnailer_pos;
+
+  bool m_done;
+  bool m_running;
+  guint m_timeout_id;
+  int  m_timeout;
+  bool m_accurate;
+  guint64 m_last_screenshot;
+
+  VideoProcessorOptions m_opts;
 
 private:
   VideoProcessor(const VideoProcessor&) = delete;

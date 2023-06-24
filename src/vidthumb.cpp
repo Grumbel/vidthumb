@@ -222,19 +222,20 @@ int main(int argc, char** argv)
         break;
     }
 
-    gst_init(&argc, &argv);
-    GMainLoop* mainloop = g_main_loop_new(nullptr, false);
+    Gst::init(argc, argv);
+
+    Glib::RefPtr<Glib::MainLoop> mainloop = Glib::MainLoop::create(false);
     {
       VideoProcessor processor(mainloop, *thumbnailer);
       processor.set_options(opts.vp_opts);
       processor.set_timeout(opts.timeout);
       processor.set_accurate(opts.accurate);
       processor.open(opts.input_filename);
-      g_main_loop_run(mainloop);
+      mainloop->run();
       thumbnailer->save(opts.output_filename);
     }
-    g_main_loop_unref(mainloop);
-    gst_deinit();
+
+    Gst::deinit();
   }
   catch(const std::exception& err)
   {
