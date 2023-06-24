@@ -201,7 +201,7 @@ VideoProcessor::get_position()
   Glib::RefPtr<Gst::Query> query_position = Gst::QueryPosition::create(Gst::FORMAT_TIME);
   if (m_pipeline->query(query_position))
   {
-    gint64 position = Glib::RefPtr<Gst::QueryDuration>::cast_static(query_position)->parse();
+    gint64 position = Glib::RefPtr<Gst::QueryPosition>::cast_static(query_position)->parse();
     return position;
   }
   else
@@ -278,7 +278,7 @@ void
 VideoProcessor::on_preroll_handoff(Glib::RefPtr<Gst::Buffer> const& buffer,
                                    Glib::RefPtr<Gst::Pad> const& pad)
 {
-  log_info(">>>>>>>>>>>>>>>>> preroll_handoff");
+  log_info(">>>>>>>>>>>>>>>>> preroll_handoff: {}", get_position());
   if (m_running)
   {
     m_last_screenshot = g_get_real_time();
