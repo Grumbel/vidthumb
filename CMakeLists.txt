@@ -32,9 +32,9 @@ function(build_dependencies)
 endfunction()
 build_dependencies()
 
-add_executable(mediainfo src/media_info.cpp)
-target_compile_options(mediainfo PRIVATE ${TINYCMMC_WARNINGS_CXX_FLAGS})
-target_link_libraries(mediainfo PRIVATE
+add_executable(vidthumb-mediainfo src/media_info.cpp)
+target_compile_options(vidthumb-mediainfo PRIVATE ${TINYCMMC_WARNINGS_CXX_FLAGS})
+target_link_libraries(vidthumb-mediainfo PRIVATE
   logmich::logmich
   fmt::fmt
   PkgConfig::GSTREAMERMM
@@ -73,7 +73,7 @@ target_link_libraries(vidthumb PRIVATE
   PkgConfig::GLIBMM
   PkgConfig::CAIROMM)
 
-install(TARGETS vidthumb mediainfo
+install(TARGETS vidthumb vidthumb-mediainfo
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
 
 install(FILES
