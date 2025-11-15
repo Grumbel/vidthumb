@@ -304,7 +304,7 @@ VideoProcessor::on_bus_message(Glib::RefPtr<Gst::Bus> const& bus,
         Glib::Error const err = msgError->parse_error();
 
         std::cerr << "Error: " << err.what() << std::endl;
-        log_error("MessageError: {}", err.what());
+        log_error("MessageError: {}", err.what().raw());
 
         queue_shutdown();
       }
@@ -319,9 +319,9 @@ VideoProcessor::on_bus_message(Glib::RefPtr<Gst::Bus> const& bus,
         state_changed_msg->parse(oldstate, newstate, pending);
 
         log_debug("Gst::MESSAGE_STATE_CHANGED: name: {} old_state: {}  new_state: {}",
-                  state_changed_msg->get_source()->get_name(),
-                  Gst::Enums::get_name(state_changed_msg->parse_old_state()),
-                  Gst::Enums::get_name(state_changed_msg->parse_new_state()));
+                  state_changed_msg->get_source()->get_name().raw(),
+                  Gst::Enums::get_name(state_changed_msg->parse_old_state()).raw(),
+                  Gst::Enums::get_name(state_changed_msg->parse_new_state()).raw());
 
         if (state_changed_msg->get_source() == m_fakesink &&
             newstate == Gst::STATE_PAUSED &&
@@ -349,7 +349,7 @@ VideoProcessor::on_bus_message(Glib::RefPtr<Gst::Bus> const& bus,
         auto tag_msg = Glib::RefPtr<Gst::MessageTag>::cast_static(message);
         Gst::TagList tag_list = tag_msg->parse_tag_list();
         tag_list.foreach([&tag_list](Glib::ustring const& foo){
-          log_info("  name: {} {}", foo, tag_list.get_type(foo));
+          log_info("  name: {} {}", foo.raw(), tag_list.get_type(foo));
         });
       }
       break;
@@ -402,7 +402,7 @@ VideoProcessor::on_bus_message(Glib::RefPtr<Gst::Bus> const& bus,
       break;
 
     default:
-      log_debug("unhandled message: {}", message->get_message_type());
+      log_debug("unhandled message: {}", Gst::Enums::get_name(message->get_message_type()).raw());
       break;
   }
 

@@ -62,7 +62,7 @@ MediaInfo::MediaInfo(std::string const& filename) :
           {
             Glib::Error err = msgError->parse_error();
             std::cerr << "Error: " << err.what() << std::endl;
-            log_error("MessageError: {}", err.what());
+            log_error("MessageError: {}", err.what().raw());
           }
           else
           {
@@ -82,7 +82,7 @@ MediaInfo::MediaInfo(std::string const& filename) :
           Gst::TagList tag_list = tag_msg->parse_tag_list();
           // log_info("  is_empty: {}", tag_list.is_empty());
           tag_list.foreach([&tag_list](Glib::ustring const& foo){
-            log_info("  name: {} {}", foo, tag_list.get_type(foo));
+            log_info("  name: {} {}", foo.raw(), tag_list.get_type(foo));
           });
         }
         break;
@@ -105,8 +105,8 @@ MediaInfo::MediaInfo(std::string const& filename) :
         state_changed_msg->parse(oldstate, newstate, pending);
 
         log_debug("Gst::MESSAGE_STATE_CHANGED: old_state: {}  new_state: {}",
-                  Gst::Enums::get_name(state_changed_msg->parse_old_state()),
-                  Gst::Enums::get_name(state_changed_msg->parse_new_state()));
+                  Gst::Enums::get_name(state_changed_msg->parse_old_state()).raw(),
+                  Gst::Enums::get_name(state_changed_msg->parse_new_state()).raw());
 
         /*
         if (msg->get_source() == m_pipeline && newstate == Gst::STATE_PAUSED)
@@ -127,7 +127,7 @@ MediaInfo::MediaInfo(std::string const& filename) :
           //auto message_stream_status = message->parse_stream_status();
           auto message_stream_status = Glib::RefPtr<Gst::MessageStreamStatus>::cast_static(message);
           log_debug("Gst::MESSAGE_STREAM_STATUS: {}",
-                    message_stream_status->parse_type());
+                    static_cast<int>(message_stream_status->parse_type()));
         }
         break;
 
@@ -144,7 +144,7 @@ MediaInfo::MediaInfo(std::string const& filename) :
         break;
 
       default:
-        log_error("--------- unhandled message: {}", Gst::Enums::get_name(message->get_message_type()));
+        log_error("--------- unhandled message: {}", Gst::Enums::get_name(message->get_message_type()).raw());
         break;
     }
 
@@ -175,7 +175,7 @@ MediaInfo::get_information()
   if (structure)
   {
     structure.foreach([&structure](const Glib::ustring& key, const Glib::ValueBase& value) {
-      log_info("   -- field: {} {}", key, structure.get_field_type(key));
+      log_info("   -- field: {} {}", key.raw(), structure.get_field_type(key));
       return true; // continue looping
     });
 

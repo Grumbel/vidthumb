@@ -2,7 +2,7 @@
   description = "Video Thumbnailer";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-23.05";
+    nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
 
     tinycmmc.url = "github:grumbel/tinycmmc";
@@ -38,7 +38,7 @@
 
             buildInputs = with pkgs; [
               cairomm
-              fmt_8
+              fmt
               gst_all_1.gstreamermm
             ] ++ [
               tinycmmc.packages.${system}.default

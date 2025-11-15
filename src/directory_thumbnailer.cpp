@@ -61,7 +61,7 @@ DirectoryThumbnailer::save(const std::string& directory_str)
   {
     std::filesystem::path filename = directory / fmt::format("thumb{:020d}.png", thumb.pos);
 
-    log_info("writing thumbnail to {}", filename);
+    log_info("writing thumbnail to {}", filename.string());
     thumb.image->write_to_png(filename.string());
   }
 }
